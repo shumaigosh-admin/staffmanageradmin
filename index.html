@@ -1795,7 +1795,7 @@ body {
     </div><!-- /.sc-content -->
 
     <p class="sp-footer-note" style="max-width:480px; margin-top:auto; padding:24px 24px 0;">
-      <strong>Shumai-Gosh!</strong> Staff Portal · QR Validation V2.07D<br>
+      <strong>Shumai-Gosh!</strong> Staff Portal · QR Validation V2.07E<br>
       Signature · Anti-Tamper · Expiry checks active.
     </p>
 
@@ -1887,6 +1887,31 @@ async function _dpCheckStampDuplicate(customerId) {
     if (!latest || !latest.timestamp) return false;
     const age = Date.now() - new Date(latest.timestamp).getTime();
     return age < DP_STAMP_WINDOW_MS;
+  } catch {
+    return false; /* if we can't check, allow — don't block on connectivity */
+  }
+}
+
+/**
+ * _dpCheckStampAlreadyToday(customerId)  — V2.07E
+ * Business rule: only ONE stamp per customer per calendar day, regardless
+ * of how many separate orders/visits they make. Reads stamps_log:{customerId}
+ * from Firebase and checks whether the most recent stamp's local calendar
+ * date matches today's local calendar date.
+ * Returns true (= already stamped today, block) or false (= safe to proceed).
+ */
+async function _dpCheckStampAlreadyToday(customerId) {
+  try {
+    const log = await SG_BACKEND.get('stamps_log:' + customerId);
+    if (!Array.isArray(log) || log.length === 0) return false;
+    const latest = log[0]; /* newest first — see _spWriteStampTransaction */
+    if (!latest || !latest.timestamp) return false;
+
+    const lastDate  = new Date(latest.timestamp);
+    const today     = new Date();
+    return lastDate.getFullYear() === today.getFullYear()
+        && lastDate.getMonth()    === today.getMonth()
+        && lastDate.getDate()     === today.getDate();
   } catch {
     return false; /* if we can't check, allow — don't block on connectivity */
   }
@@ -3207,9 +3232,10 @@ function _renderStampHistory(transactions) {
 }
 
 /**
- * handleAwardStamp()  — V2.07C
+ * handleAwardStamp()  — V2.07E
  * Added: processing lock (button disabled immediately) +
- *        Firebase 10-second duplicate stamp detection.
+ *        Firebase 10-second duplicate stamp detection +
+ *        once-per-calendar-day stamp limit (anti-abuse).
  */
 async function handleAwardStamp() {
   if (!_clActiveCustomerId) return;
@@ -3227,6 +3253,16 @@ async function handleAwardStamp() {
     if (isDuplicate) {
       btnText.textContent = '⚠️ Duplicate Detected';
       _showDuplicateToast('⚠️ Duplicate Stamp Attempt Detected — a stamp was already awarded in the last 10 seconds.');
+      setTimeout(() => { btnText.textContent = 'Award Stamp'; btn.disabled = false; }, 2500);
+      return;
+    }
+
+    /* V2.07E — One stamp per customer per calendar day (hard rule, no override).
+       Prevents multiple same-day orders from being stamped multiple times. */
+    const alreadyStampedToday = await _dpCheckStampAlreadyToday(_clActiveCustomerId);
+    if (alreadyStampedToday) {
+      btnText.textContent = '⚠️ Already Stamped Today';
+      _showDuplicateToast('⚠️ Already Stamped Today — only one stamp per customer per day. Please come back tomorrow!');
       setTimeout(() => { btnText.textContent = 'Award Stamp'; btn.disabled = false; }, 2500);
       return;
     }
