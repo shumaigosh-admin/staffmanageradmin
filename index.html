@@ -1902,16 +1902,28 @@ async function _dpCheckStampDuplicate(customerId) {
  */
 async function _dpCheckStampAlreadyToday(customerId) {
   try {
-    const log = await SG_BACKEND.get('stamps_log:' + customerId);
+    const [log, serverMs] = await Promise.all([
+      SG_BACKEND.get('stamps_log:' + customerId),
+      _getServerTimeMs()
+    ]);
     if (!Array.isArray(log) || log.length === 0) return false;
-    const latest = log[0]; /* newest first — see _spWriteStampTransaction */
+    const latest = log[0]; /* newest first */
     if (!latest || !latest.timestamp) return false;
 
-    const lastDate  = new Date(latest.timestamp);
-    const today     = new Date();
-    return lastDate.getFullYear() === today.getFullYear()
-        && lastDate.getMonth()    === today.getMonth()
-        && lastDate.getDate()     === today.getDate();
+    /* Use serverTimestamp (Firebase epoch ms) if present; otherwise ISO string.
+       Compare against TRUE server time — not the device clock — so changing
+       the phone/PC date cannot bypass this guard. */
+    const lastMs     = latest.serverTimestamp
+      ? latest.serverTimestamp
+      : new Date(latest.timestamp).getTime();
+
+    const lastDate   = new Date(lastMs);
+    const serverDate = new Date(serverMs);
+
+    /* UTC date comparison to prevent timezone-offset tricks */
+    return lastDate.getUTCFullYear() === serverDate.getUTCFullYear()
+        && lastDate.getUTCMonth()    === serverDate.getUTCMonth()
+        && lastDate.getUTCDate()     === serverDate.getUTCDate();
   } catch {
     return false; /* if we can't check, allow — don't block on connectivity */
   }
@@ -2029,6 +2041,23 @@ function _fbPath(key) {
   const collection = key.slice(0, colonIdx);
   const id         = key.slice(colonIdx + 1).replace(/[.#$[\]]/g, '_');
   return collection + '/' + id;
+}
+
+/**
+ * _getServerTimeMs()
+ * Returns the true Firebase server time in milliseconds by reading
+ * the .info/serverTimeOffset value — a built-in Firebase RTDB feature
+ * that is immune to client clock manipulation.
+ * Falls back to Date.now() only if Firebase is unreachable.
+ */
+async function _getServerTimeMs() {
+  try {
+    const snap = await _fbDb.ref('.info/serverTimeOffset').once('value');
+    const offset = snap.val() || 0;
+    return Date.now() + offset;
+  } catch {
+    return Date.now(); /* fallback — connectivity issue */
+  }
 }
 
 const SG_BACKEND = {
@@ -3144,7 +3173,8 @@ async function _spWriteStampTransaction(customerId) {
     transactionId,
     customerId,
     staffId,
-    timestamp: new Date().toISOString()
+    timestamp:       new Date().toISOString(),
+    serverTimestamp: firebase.database.ServerValue.TIMESTAMP  /* immune to client clock manipulation */
   };
   try {
     const existing = await SG_BACKEND.get('stamps_log:' + customerId);
