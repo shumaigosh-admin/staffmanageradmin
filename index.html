@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shumai-Gosh! — Staff Portal V2.07C</title>
+<title>Shumai-Gosh! — Staff Portal V2.07D</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -1273,6 +1273,162 @@ body {
   *,*::before,*::after{animation-duration:0.01ms !important;transition-duration:0.01ms !important;}
 }
 
+/* ============================================================
+   V2.07D — AUDIT LOG VIEWER
+   ============================================================ */
+.al-page {
+  width: 100%; min-height: 100dvh;
+  display: flex; flex-direction: column; align-items: center;
+  padding-bottom: 48px;
+}
+.al-header {
+  width: 100%; max-width: 480px;
+  padding: 18px 24px 6px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.al-back {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 800;
+  color: rgba(255,200,180,0.55);
+  background: none; border: none; cursor: pointer; padding: 6px 0;
+  transition: color 0.15s ease;
+}
+.al-back:hover { color: rgba(255,200,180,0.85); }
+.al-title-block { text-align: right; }
+.al-title {
+  font-family: var(--sg-font-display); font-size: 19px; color: #fff; line-height: 1.1;
+}
+.al-sub {
+  font-size: 11px; font-weight: 700;
+  color: rgba(255,200,180,0.35); letter-spacing: 0.04em; margin-top: 1px;
+}
+.al-content {
+  width: 100%; max-width: 480px;
+  padding: 0 20px; display: flex; flex-direction: column; gap: 12px;
+}
+.al-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 10.5px; font-weight: 800; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--sp-gold);
+  padding: 5px 14px; border: 1.5px solid rgba(255,195,0,0.22);
+  border-radius: var(--sg-radius-pill); background: rgba(255,195,0,0.07);
+  align-self: flex-start;
+}
+.al-filters {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.al-filter-btn {
+  font-family: var(--sg-font-body); font-size: 11px; font-weight: 800;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 6px 14px; border-radius: var(--sg-radius-pill);
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid rgba(255,200,180,0.14);
+  color: rgba(255,200,180,0.5); cursor: pointer;
+  transition: all 0.15s ease;
+}
+.al-filter-btn.is-active,
+.al-filter-btn:hover {
+  background: rgba(224,85,128,0.15);
+  border-color: var(--sg-pink-deep);
+  color: rgba(255,200,180,0.9);
+}
+.al-panel {
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,200,180,0.12);
+  border-radius: var(--sg-radius-md);
+  overflow: hidden;
+}
+.al-panel__header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid rgba(255,200,180,0.1);
+}
+.al-panel__title {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.14em;
+  text-transform: uppercase; color: rgba(255,200,180,0.5);
+}
+.al-panel__meta {
+  display: flex; align-items: center; gap: 8px;
+}
+.al-panel__count {
+  font-size: 11px; font-weight: 800; color: rgba(255,200,180,0.35);
+}
+.al-refresh-btn {
+  font-size: 13px; background: none; border: none;
+  cursor: pointer; padding: 2px 6px;
+  color: rgba(255,200,180,0.4); border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.al-refresh-btn:hover { color: rgba(255,200,180,0.8); background: rgba(255,200,180,0.08); }
+.al-refresh-btn.is-spinning { animation: spin 0.7s linear infinite; }
+.al-list {
+  max-height: 420px; overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.al-list::-webkit-scrollbar { width: 3px; }
+.al-list::-webkit-scrollbar-thumb { background: rgba(255,200,180,0.18); border-radius: 99px; }
+.al-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px; align-items: start;
+  padding: 11px 16px;
+  border-bottom: 1px solid rgba(255,200,180,0.07);
+  transition: background 0.12s ease;
+}
+.al-item:last-child { border-bottom: none; }
+.al-item:hover { background: rgba(255,255,255,0.03); }
+.al-item__dot {
+  width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0;
+}
+.al-item__dot--login       { background: #2ED47A; box-shadow: 0 0 6px rgba(46,212,122,0.5); }
+.al-item__dot--logout      { background: rgba(255,200,180,0.4); }
+.al-item__dot--qrScan      { background: #60C8F0; box-shadow: 0 0 6px rgba(96,200,240,0.4); }
+.al-item__dot--manualLookup{ background: #A880F0; box-shadow: 0 0 6px rgba(168,128,240,0.4); }
+.al-item__dot--awardStamp  { background: var(--sp-gold); box-shadow: 0 0 6px rgba(255,195,0,0.5); }
+.al-item__dot--rewardClaim { background: #F2849E; box-shadow: 0 0 6px rgba(242,132,158,0.5); }
+.al-item__dot--accessDenied{ background: #D63060; box-shadow: 0 0 6px rgba(214,48,96,0.5); }
+.al-item__body { min-width: 0; }
+.al-item__action {
+  font-size: 12px; font-weight: 800;
+  color: rgba(255,240,235,0.85); line-height: 1.3;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.al-item__meta {
+  font-size: 10.5px; font-weight: 700;
+  color: rgba(255,200,180,0.38); margin-top: 2px; line-height: 1.4;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.al-item__details {
+  font-size: 10px; font-weight: 700;
+  color: rgba(255,200,180,0.28); margin-top: 2px; line-height: 1.4;
+}
+.al-item__time {
+  font-size: 9.5px; font-weight: 800; text-align: right;
+  color: rgba(255,200,180,0.28); flex-shrink: 0; line-height: 1.4;
+  white-space: nowrap;
+}
+.al-empty {
+  padding: 32px 16px; text-align: center;
+  font-size: 13px; font-weight: 700; color: rgba(255,200,180,0.3);
+}
+.al-loading {
+  padding: 24px 16px; text-align: center;
+  font-size: 12px; font-weight: 700; color: rgba(255,200,180,0.3);
+}
+.al-role-pill {
+  display: inline-block; padding: 1px 7px;
+  border-radius: var(--sg-radius-pill);
+  font-size: 9.5px; font-weight: 800; letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(255,200,180,0.08);
+  border: 1px solid rgba(255,200,180,0.14);
+  color: rgba(255,200,180,0.5);
+}
+.al-role-pill--admin   { background: rgba(224,85,128,0.12); border-color: rgba(224,85,128,0.25); color: #F2849E; }
+.al-role-pill--manager { background: rgba(255,195,0,0.1);   border-color: rgba(255,195,0,0.25);  color: #FFC300; }
+.al-role-pill--cashier { background: rgba(46,212,122,0.1);  border-color: rgba(46,212,122,0.25); color: #2ED47A; }
+
 </style>
 </head>
 <body>
@@ -1821,6 +1977,60 @@ body {
   </div>
 </div>
 
+<!-- ================================================================
+     VIEW 5 — AUDIT LOG VIEWER  (V2.07D — Admin Only)
+     ================================================================ -->
+<div class="sp-view" id="spViewAuditLog" role="main" aria-label="Audit Log Viewer">
+  <div class="al-page">
+
+    <header class="al-header">
+      <button class="al-back" type="button"
+        onclick="closeAuditLog()" aria-label="Back to Dashboard">
+        <span aria-hidden="true" style="font-size:16px;">‹</span>
+        Dashboard
+      </button>
+      <div class="al-title-block">
+        <div class="al-title">Audit Log</div>
+        <div class="al-sub">Admin View · V2.07D</div>
+      </div>
+    </header>
+
+    <div class="al-content">
+      <div class="al-badge">🛡️ &nbsp;Admin Access Only</div>
+
+      <!-- Filter bar -->
+      <div class="al-filters" id="alFilters" role="group" aria-label="Filter audit events">
+        <button class="al-filter-btn is-active" type="button" data-filter="all"    onclick="alSetFilter('all')">All</button>
+        <button class="al-filter-btn"            type="button" data-filter="login"  onclick="alSetFilter('login')">Login</button>
+        <button class="al-filter-btn"            type="button" data-filter="stamp"  onclick="alSetFilter('stamp')">Stamps</button>
+        <button class="al-filter-btn"            type="button" data-filter="reward" onclick="alSetFilter('reward')">Rewards</button>
+        <button class="al-filter-btn"            type="button" data-filter="access" onclick="alSetFilter('access')">Access</button>
+      </div>
+
+      <!-- Log panel -->
+      <div class="al-panel">
+        <div class="al-panel__header">
+          <span class="al-panel__title">Audit Events</span>
+          <div class="al-panel__meta">
+            <span class="al-panel__count" id="alCount">—</span>
+            <button class="al-refresh-btn" type="button" id="alRefreshBtn"
+              onclick="alLoadLogs()" title="Refresh" aria-label="Refresh audit log">↻</button>
+          </div>
+        </div>
+        <div class="al-list" id="alList" role="list">
+          <div class="al-loading">⏳ Loading audit log…</div>
+        </div>
+      </div>
+
+      <p class="sp-footer-note" style="margin-top:4px;">
+        <strong>Shumai-Gosh!</strong> Staff Portal · Audit Trail V2.07D<br>
+        All staff actions are recorded and time-stamped.
+      </p>
+    </div>
+
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="sp-toast" id="spToast" role="status" aria-live="polite" aria-atomic="true"></div>
 
@@ -2278,6 +2488,11 @@ function handleFeatureClick(cardEl, featureLabel) {
     return;
   }
 
+  if (feature === 'administration') {
+    openAuditLog();
+    return;
+  }
+
   showComingSoon(featureLabel);
 }
 
@@ -2285,6 +2500,7 @@ function handleFeatureClick(cardEl, featureLabel) {
    ACCESS DENIED MODAL
    ================================================================ */
 function showAccessDenied(feature, featureLabel, role) {
+  auditAccessDenied(feature, role || getActiveRole()); /* V2.07D */
   const meta     = FEATURE_META[feature] || { label: featureLabel, minRole: '—' };
   const roleInfo = STAFF_ROLES[role]     || { label: role };
   const minInfo  = STAFF_ROLES[meta.minRole] || { label: meta.minRole };
@@ -2475,6 +2691,7 @@ function handleStaffLogin() {
         sessionStorage.setItem(SP_SESSION_ID_KEY,   match.staffId);
         sessionStorage.setItem(SP_SESSION_ROLE_KEY, match.role);
       } catch {}
+      auditLogin(match.staffId, match.role);
       loadDashboard(match);
       showStaffView('spViewDashboard');
 
@@ -2937,6 +3154,7 @@ async function handleScannedQR(rawText) {
         return;
       }
       _dpRecordQRScan(scannedId);
+      auditQRScan(scannedId); /* V2.07D */
 
       /* Only stop the camera once we're committed to leaving the scanner */
       stopScanLoop(); stopCamera();
@@ -3352,6 +3570,7 @@ async function handleAwardStamp() {
 
     /* Step 6 — update UI */
     _updateStampUI(customer);
+    auditAwardStamp(_clActiveCustomerId, n); /* V2.07D */
     btnText.textContent = '✅ Stamp Awarded!';
     setTimeout(() => { btnText.textContent = 'Award Stamp'; btn.disabled = false; }, 1800);
 
@@ -3418,6 +3637,7 @@ async function handleClaimReward() {
     _clCacheSet(CL_CACHE_CUSTOMERS, cache);
 
     _updateStampUI(customer);
+    auditRewardClaim(_clActiveCustomerId, customer.rewardsClaimed); /* V2.07D */
     btn.innerHTML = '✅ Reward Claimed!';
     setTimeout(() => { btn.disabled = false; btn.innerHTML = '<span aria-hidden="true">🎁</span> Claim Free Reward'; }, 1800);
 
@@ -3469,6 +3689,7 @@ async function handleManualIdLookup() {
     }
     input.value = '';
     _dpRecordQRScan(customerId); /* V2.07C — track manual lookups for duplicate guard */
+    auditManualLookup(customerId); /* V2.07D */
     showCustomerLookup(customer);
   } catch(e) {
     console.error('[ManualLookup] Error:', e);
@@ -3532,9 +3753,253 @@ function showComingSoon(feature) {
 }
 
 /* ================================================================
+   V2.07D — AUDIT TRAIL ENGINE
+   Writes to: auditLogs/{auditId}
+   Schema: { auditId, timestamp, staffId, staffRole, action,
+             customerId, details }
+   All write failures are silent (non-blocking).
+   ================================================================ */
+
+/**
+ * _auditWrite(action, customerId, details)
+ * Core audit writer. Generates a unique auditId, attaches current
+ * staff session context, and persists to auditLogs/ in Firebase.
+ * Never throws — audit logging must never block normal operations.
+ */
+async function _auditWrite(action, customerId, details) {
+  try {
+    const staffId   = getActiveStaffId()  || 'UNKNOWN';
+    const staffRole = getActiveRole()     || 'unknown';
+    const auditId   = 'AUD-' + Date.now() + '-' + Math.random().toString(36).slice(2,7).toUpperCase();
+    const record = {
+      auditId,
+      timestamp:       new Date().toISOString(),
+      serverTimestamp: firebase.database.ServerValue.TIMESTAMP,
+      staffId,
+      staffRole,
+      action,
+      customerId:      customerId || null,
+      details:         details    || null
+    };
+    /* Store under auditLogs/{auditId} — flat list, one doc per event */
+    await _fbDb.ref('auditLogs/' + auditId).set(record);
+  } catch (e) {
+    /* Silent fail — audit errors must not disrupt staff workflows */
+    console.warn('[V2.07D] Audit write failed:', e);
+  }
+}
+
+/* ── Named audit helpers — called throughout the portal ── */
+
+function auditLogin(staffId, staffRole) {
+  /* Login uses passed values because session is set immediately before this call */
+  try {
+    const auditId = 'AUD-' + Date.now() + '-' + Math.random().toString(36).slice(2,7).toUpperCase();
+    const record = {
+      auditId,
+      timestamp:       new Date().toISOString(),
+      serverTimestamp: firebase.database.ServerValue.TIMESTAMP,
+      staffId:         staffId   || 'UNKNOWN',
+      staffRole:       staffRole || 'unknown',
+      action:          'login',
+      customerId:      null,
+      details:         'Staff login successful.'
+    };
+    _fbDb.ref('auditLogs/' + auditId).set(record).catch(() => {});
+  } catch {}
+}
+
+function auditLogout() {
+  _auditWrite('logout', null, 'Staff signed out.');
+}
+
+function auditQRScan(customerId) {
+  _auditWrite('qrScan', customerId, 'Customer QR code scanned.');
+}
+
+function auditManualLookup(customerId) {
+  _auditWrite('manualLookup', customerId, 'Manual customer ID lookup.');
+}
+
+function auditAwardStamp(customerId, stampNumber) {
+  _auditWrite('awardStamp', customerId, 'Stamp #' + stampNumber + ' awarded.');
+}
+
+function auditRewardClaim(customerId, rewardNumber) {
+  _auditWrite('rewardClaim', customerId, 'Reward #' + rewardNumber + ' claimed.');
+}
+
+function auditAccessDenied(feature, staffRole) {
+  _auditWrite('accessDenied', null,
+    'Access denied to "' + feature + '" for role "' + staffRole + '".');
+}
+
+/* ================================================================
+   V2.07D — AUDIT LOG VIEWER
+   Admin-only view that reads from auditLogs/ and renders a
+   filterable, time-ordered list of audit events.
+   ================================================================ */
+
+let _alCurrentFilter = 'all';
+let _alAllRecords    = [];
+
+/** Filter group → matching action values */
+const AL_FILTER_MAP = {
+  all:    null,
+  login:  ['login', 'logout'],
+  stamp:  ['qrScan', 'manualLookup', 'awardStamp'],
+  reward: ['rewardClaim'],
+  access: ['accessDenied']
+};
+
+/** Action → human label + dot CSS modifier */
+const AL_ACTION_META = {
+  login:         { label: 'Staff Login',        dot: 'login',        icon: '🔑' },
+  logout:        { label: 'Staff Logout',        dot: 'logout',       icon: '🚪' },
+  qrScan:        { label: 'QR Scan',             dot: 'qrScan',       icon: '📷' },
+  manualLookup:  { label: 'Manual Lookup',       dot: 'manualLookup', icon: '🔍' },
+  awardStamp:    { label: 'Award Stamp',         dot: 'awardStamp',   icon: '🏅' },
+  rewardClaim:   { label: 'Reward Claimed',      dot: 'rewardClaim',  icon: '🎁' },
+  accessDenied:  { label: 'Access Denied',       dot: 'accessDenied', icon: '🚫' }
+};
+
+/**
+ * openAuditLog()
+ * Navigate to the audit log viewer (admin only).
+ */
+function openAuditLog() {
+  if (!requireStaffAuth()) return;
+  const role = getActiveRole();
+  if (role !== 'admin') {
+    showAccessDenied('administration', 'Administration', role);
+    return;
+  }
+  showStaffView('spViewAuditLog');
+  alLoadLogs();
+}
+
+/**
+ * closeAuditLog()
+ * Return to the staff dashboard.
+ */
+function closeAuditLog() {
+  if (!requireStaffAuth()) return;
+  showStaffView('spViewDashboard');
+}
+
+/**
+ * alLoadLogs()
+ * Fetches all records from auditLogs/ sorted newest-first,
+ * stores them in _alAllRecords, and triggers a render.
+ */
+async function alLoadLogs() {
+  const list    = document.getElementById('alList');
+  const countEl = document.getElementById('alCount');
+  const btn     = document.getElementById('alRefreshBtn');
+
+  if (list)    list.innerHTML = '<div class="al-loading">⏳ Loading…</div>';
+  if (countEl) countEl.textContent = '—';
+  if (btn)     btn.classList.add('is-spinning');
+
+  try {
+    const snap = await _fbDb.ref('auditLogs')
+      .orderByChild('timestamp')
+      .once('value');
+
+    const raw = [];
+    if (snap.exists()) {
+      snap.forEach(child => { raw.push(child.val()); });
+    }
+    /* Reverse so newest is first (Firebase orders ascending by default) */
+    raw.reverse();
+    _alAllRecords = raw;
+  } catch (e) {
+    _alAllRecords = [];
+    console.warn('[V2.07D] Audit log fetch failed:', e);
+  }
+
+  if (btn) btn.classList.remove('is-spinning');
+  alRender();
+}
+
+/**
+ * alSetFilter(filter)
+ * Updates the active filter pill and re-renders the list.
+ */
+function alSetFilter(filter) {
+  _alCurrentFilter = filter;
+
+  /* Update pill styles */
+  document.querySelectorAll('.al-filter-btn').forEach(btn => {
+    btn.classList.toggle('is-active', btn.dataset.filter === filter);
+  });
+
+  alRender();
+}
+
+/**
+ * alRender()
+ * Applies the current filter and renders the visible records.
+ */
+function alRender() {
+  const list    = document.getElementById('alList');
+  const countEl = document.getElementById('alCount');
+  if (!list) return;
+
+  const allowedActions = AL_FILTER_MAP[_alCurrentFilter];
+  const filtered = allowedActions
+    ? _alAllRecords.filter(r => allowedActions.includes(r.action))
+    : _alAllRecords;
+
+  if (countEl) countEl.textContent = filtered.length + ' event' + (filtered.length !== 1 ? 's' : '');
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="al-empty">No audit events found.</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(r => {
+    const meta     = AL_ACTION_META[r.action] || { label: r.action, dot: 'login', icon: '•' };
+    const roleClass = ['admin','manager','cashier'].includes(r.staffRole)
+      ? ' al-role-pill--' + r.staffRole : '';
+    const roleLabel = r.staffRole
+      ? `<span class="al-role-pill${roleClass}">${escapeHtml(r.staffRole)}</span>`
+      : '';
+
+    const date = r.timestamp ? new Date(r.timestamp) : null;
+    const dateStr = date
+      ? date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })
+      : '—';
+    const timeStr = date
+      ? date.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      : '';
+
+    const customerLine = r.customerId
+      ? `<div class="al-item__details">Customer: ${escapeHtml(r.customerId)}</div>`
+      : '';
+    const detailsLine = r.details
+      ? `<div class="al-item__details">${escapeHtml(r.details)}</div>`
+      : '';
+
+    return `
+      <div class="al-item" role="listitem">
+        <div class="al-item__dot al-item__dot--${meta.dot}" aria-hidden="true"></div>
+        <div class="al-item__body">
+          <div class="al-item__action">${meta.icon} ${escapeHtml(meta.label)}</div>
+          <div class="al-item__meta">Staff: ${escapeHtml(r.staffId || '—')} &nbsp;${roleLabel}</div>
+          ${customerLine}
+          ${detailsLine}
+        </div>
+        <div class="al-item__time">${escapeHtml(dateStr)}<br>${escapeHtml(timeStr)}</div>
+      </div>`;
+  }).join('');
+}
+
+/* ================================================================
    SIGN OUT
    ================================================================ */
 function handleSignOut() {
+  auditLogout(); /* V2.07D — must fire before session keys are cleared */
   try {
     sessionStorage.removeItem(SP_SESSION_ID_KEY);
     sessionStorage.removeItem(SP_SESSION_ROLE_KEY);
