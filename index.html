@@ -1881,11 +1881,18 @@ function _dpRecordQRScan(customerId) {
  */
 async function _dpCheckStampDuplicate(customerId) {
   try {
-    const log = await SG_BACKEND.get('stamps_log:' + customerId);
+    const [log, serverMs] = await Promise.all([
+      SG_BACKEND.get('stamps_log:' + customerId),
+      _getServerTimeMs()
+    ]);
     if (!Array.isArray(log) || log.length === 0) return false;
     const latest = log[0]; /* newest first — see _spWriteStampTransaction */
-    if (!latest || !latest.timestamp) return false;
-    const age = Date.now() - new Date(latest.timestamp).getTime();
+    if (!latest) return false;
+    /* Prefer server-written timestamp; fall back to ISO string */
+    const lastMs = latest.serverTimestamp
+      ? latest.serverTimestamp
+      : (latest.timestamp ? new Date(latest.timestamp).getTime() : 0);
+    const age = serverMs - lastMs;
     return age < DP_STAMP_WINDOW_MS;
   } catch {
     return false; /* if we can't check, allow — don't block on connectivity */
@@ -1972,12 +1979,18 @@ function _dpRecordRewardClaim(customerId, stampsBeforeClaim) {
  */
 async function _dpCheckRewardDuplicateRemote(customerId, stampsBeforeClaim) {
   try {
-    const log = await SG_BACKEND.get('reward_claims_log:' + customerId);
+    const [log, serverMs] = await Promise.all([
+      SG_BACKEND.get('reward_claims_log:' + customerId),
+      _getServerTimeMs()
+    ]);
     if (!Array.isArray(log) || log.length === 0) return false;
     const latest = log[0]; /* newest first */
-    if (!latest || !latest.timestamp) return false;
+    if (!latest) return false;
     const sameStamps = latest.stamps === stampsBeforeClaim;
-    const age = Date.now() - new Date(latest.timestamp).getTime();
+    const lastMs = latest.serverTimestamp
+      ? latest.serverTimestamp
+      : (latest.timestamp ? new Date(latest.timestamp).getTime() : 0);
+    const age = serverMs - lastMs;
     return sameStamps && age < 30 * 1000;
   } catch {
     return false; /* if we can't check, allow — don't block on connectivity */
@@ -1997,7 +2010,8 @@ async function _dpRecordRewardClaimRemote(customerId, stampsBeforeClaim) {
     customerId,
     staffId,
     stamps: stampsBeforeClaim,
-    timestamp: new Date().toISOString()
+    timestamp:       new Date().toISOString(),
+    serverTimestamp: firebase.database.ServerValue.TIMESTAMP
   };
   try {
     const existing = await SG_BACKEND.get('reward_claims_log:' + customerId);
@@ -2843,11 +2857,14 @@ async function validateQRPayload(rawText) {
     return { status: 'invalid', missing };
   }
 
-  /* ── 3. Expiry check (issuedAt window) ── */
+  /* ── 3. Expiry check (issuedAt window) — uses server time, not device clock ── */
   if (payload.issuedAt) {
     const issued = new Date(payload.issuedAt).getTime();
-    if (!isNaN(issued) && Date.now() - issued > SG_QR_MAX_AGE_MS) {
-      return { status: 'expired', payload, issuedAt: payload.issuedAt };
+    if (!isNaN(issued)) {
+      const serverMs = await _getServerTimeMs();
+      if (serverMs - issued > SG_QR_MAX_AGE_MS) {
+        return { status: 'expired', payload, issuedAt: payload.issuedAt };
+      }
     }
   }
 
