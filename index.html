@@ -12,6 +12,7 @@
 <!-- Firebase SDK (compat build) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
 
 /* ============================================================
@@ -1359,6 +1360,199 @@ body {
 }
 
 /* ============================================================
+   V2.09D — REPORTS VIEW
+   ============================================================ */
+.rp-page {
+  width: 100%; min-height: 100dvh;
+  display: flex; flex-direction: column; align-items: center;
+  padding-bottom: 56px;
+}
+.rp-header {
+  width: 100%; max-width: 480px;
+  padding: 18px 24px 6px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.rp-back {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 800;
+  color: rgba(255,200,180,0.55);
+  background: none; border: none; cursor: pointer; padding: 6px 0;
+  transition: color 0.15s ease;
+}
+.rp-back:hover { color: rgba(255,200,180,0.85); }
+.rp-title-block { text-align: right; }
+.rp-title { font-family: var(--sg-font-display); font-size: 19px; color: #fff; line-height: 1.1; }
+.rp-sub  { font-size: 11px; font-weight: 700; color: rgba(255,200,180,0.35); letter-spacing: 0.04em; margin-top: 1px; }
+
+.rp-content {
+  width: 100%; max-width: 480px;
+  padding: 0 20px; display: flex; flex-direction: column; gap: 16px;
+}
+
+/* Role badge */
+.rp-role-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 10.5px; font-weight: 800; letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 5px 14px; border-radius: var(--sg-radius-pill);
+  align-self: flex-start;
+}
+.rp-role-badge--manager {
+  color: #60C8F0; border: 1.5px solid rgba(96,200,240,0.25);
+  background: rgba(96,200,240,0.08);
+}
+.rp-role-badge--admin {
+  color: var(--sp-gold); border: 1.5px solid rgba(255,195,0,0.22);
+  background: rgba(255,195,0,0.07);
+}
+
+/* Summary stat cards */
+.rp-stats-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.rp-stat-card {
+  background: rgba(255,255,255,0.045);
+  border: 1.5px solid rgba(255,200,180,0.12);
+  border-radius: var(--sg-radius-md);
+  padding: 16px 16px 14px;
+  display: flex; flex-direction: column; gap: 4px;
+  position: relative; overflow: hidden;
+}
+.rp-stat-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  border-radius: var(--sg-radius-md) var(--sg-radius-md) 0 0;
+}
+.rp-stat-card--customers::before { background: linear-gradient(90deg, #60C8F0, #3A9FD0); }
+.rp-stat-card--stamps::before    { background: linear-gradient(90deg, var(--sp-gold), var(--sp-gold-deep)); }
+.rp-stat-card--rewards::before   { background: linear-gradient(90deg, #F2849E, var(--sg-pink-deep)); }
+.rp-stat-card--top::before       { background: linear-gradient(90deg, #2ED47A, #1C8C5E); }
+.rp-stat-card__icon { font-size: 20px; line-height: 1; }
+.rp-stat-card__value {
+  font-family: var(--sg-font-display); font-size: 28px; color: #fff;
+  line-height: 1; margin-top: 2px;
+}
+.rp-stat-card__value.is-loading { opacity: 0.3; }
+.rp-stat-card__label {
+  font-size: 10.5px; font-weight: 800; letter-spacing: 0.1em;
+  text-transform: uppercase; color: rgba(255,200,180,0.4);
+}
+
+/* Section panel (shared) */
+.rp-panel {
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,200,180,0.12);
+  border-radius: var(--sg-radius-md);
+  overflow: hidden;
+}
+.rp-panel__header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid rgba(255,200,180,0.1);
+}
+.rp-panel__title {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.14em;
+  text-transform: uppercase; color: rgba(255,200,180,0.5);
+}
+.rp-panel__meta { display: flex; align-items: center; gap: 8px; }
+.rp-panel__count { font-size: 11px; font-weight: 800; color: rgba(255,200,180,0.3); }
+.rp-refresh-btn {
+  font-size: 13px; background: none; border: none;
+  cursor: pointer; padding: 2px 6px;
+  color: rgba(255,200,180,0.4); border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.rp-refresh-btn:hover { color: rgba(255,200,180,0.8); background: rgba(255,200,180,0.08); }
+.rp-refresh-btn.is-spinning { animation: spin 0.7s linear infinite; }
+
+/* Feed lists */
+.rp-list {
+  max-height: 320px; overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.rp-list::-webkit-scrollbar { width: 3px; }
+.rp-list::-webkit-scrollbar-thumb { background: rgba(255,200,180,0.18); border-radius: 99px; }
+
+.rp-item {
+  display: grid; grid-template-columns: auto 1fr auto;
+  gap: 10px; align-items: start;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255,200,180,0.07);
+  transition: background 0.12s ease;
+}
+.rp-item:last-child { border-bottom: none; }
+.rp-item:hover { background: rgba(255,255,255,0.03); }
+.rp-item__dot {
+  width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0;
+}
+.rp-item__dot--stamp  { background: var(--sp-gold); box-shadow: 0 0 6px rgba(255,195,0,0.5); }
+.rp-item__dot--reward { background: #F2849E; box-shadow: 0 0 6px rgba(242,132,158,0.5); }
+.rp-item__dot--rank   { background: #2ED47A; box-shadow: 0 0 6px rgba(46,212,122,0.4); }
+.rp-item__dot--staff  { background: #60C8F0; box-shadow: 0 0 6px rgba(96,200,240,0.4); }
+.rp-item__dot--login  { background: rgba(255,200,180,0.4); }
+.rp-item__dot--denied { background: #D63060; box-shadow: 0 0 6px rgba(214,48,96,0.5); }
+
+.rp-item__body { min-width: 0; }
+.rp-item__main {
+  font-size: 12px; font-weight: 800;
+  color: rgba(255,240,235,0.85); line-height: 1.3;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.rp-item__sub {
+  font-size: 10.5px; font-weight: 700;
+  color: rgba(255,200,180,0.38); margin-top: 2px;
+}
+.rp-item__time {
+  font-size: 9.5px; font-weight: 800; text-align: right;
+  color: rgba(255,200,180,0.28); flex-shrink: 0; line-height: 1.4;
+  white-space: nowrap;
+}
+.rp-item__badge {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 9px; border-radius: var(--sg-radius-pill);
+  white-space: nowrap; display: inline-block; margin-top: 3px;
+}
+.rp-item__badge--stamps {
+  color: var(--sp-gold); background: rgba(255,195,0,0.1);
+  border: 1px solid rgba(255,195,0,0.22);
+}
+
+/* Rank number */
+.rp-rank-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 900;
+  flex-shrink: 0; margin-top: 2px;
+}
+.rp-rank-num--1 { background: rgba(255,195,0,0.18); color: var(--sp-gold); border: 1px solid rgba(255,195,0,0.3); }
+.rp-rank-num--2 { background: rgba(192,200,210,0.1); color: rgba(192,200,210,0.7); border: 1px solid rgba(192,200,210,0.2); }
+.rp-rank-num--3 { background: rgba(205,127,50,0.1);  color: rgba(205,127,50,0.8);  border: 1px solid rgba(205,127,50,0.22); }
+.rp-rank-num--n { background: rgba(255,255,255,0.06); color: rgba(255,200,180,0.4); border: 1px solid rgba(255,200,180,0.1); }
+
+.rp-empty {
+  padding: 22px 16px; text-align: center;
+  font-size: 12px; font-weight: 700; color: rgba(255,200,180,0.3);
+}
+.rp-loading {
+  padding: 22px 16px; text-align: center;
+  font-size: 12px; font-weight: 700; color: rgba(255,200,180,0.35);
+}
+
+/* Admin-only section marker */
+.rp-admin-divider {
+  display: flex; align-items: center; gap: 10px;
+  margin: 2px 0;
+}
+.rp-admin-divider__line { flex: 1; height: 1px; background: rgba(255,195,0,0.12); }
+.rp-admin-divider__text {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.14em;
+  text-transform: uppercase; color: rgba(255,195,0,0.35);
+  display: flex; align-items: center; gap: 5px;
+}
+
+/* ============================================================
    V2.07D — AUDIT LOG VIEWER
    ============================================================ */
 .al-page {
@@ -1599,24 +1793,6 @@ body {
       <div class="sp-divider__line"></div>
       <span class="sp-divider__text">Credentials</span>
       <div class="sp-divider__line"></div>
-    </div>
-
-    <div class="sg-field" id="fieldStaffId">
-      <label class="sg-field__label" for="inputStaffId">Username</label>
-      <div class="sg-field__input-wrap">
-        <span class="sg-field__icon" aria-hidden="true">🪪</span>
-        <input class="sg-field__input"
-          id="inputStaffId" type="text" name="staffUsername"
-          placeholder="Enter your username" autocomplete="username"
-          autocorrect="off" autocapitalize="none" spellcheck="false"
-          maxlength="32" aria-required="true" aria-describedby="staffIdMsg"
-          oninput="onStaffIdInput()" onblur="onStaffIdBlur()">
-        <span class="sg-field__status" id="staffIdStatusIcon" aria-hidden="true"></span>
-      </div>
-      <div class="sg-field__msg" id="staffIdMsg" role="alert" aria-live="polite">
-        <span class="sg-field__msg-icon" id="staffIdMsgIcon"></span>
-        <span id="staffIdMsgText"></span>
-      </div>
     </div>
 
     <div class="sg-field sg-field--has-eye" id="fieldStaffPass">
@@ -2066,6 +2242,159 @@ body {
 </div>
 
 <!-- ================================================================
+     VIEW 6 — REPORTS  (V2.09D — Manager + Admin)
+     ================================================================ -->
+<div class="sp-view" id="spViewReports" role="main" aria-label="Reports">
+  <div class="rp-page">
+
+    <header class="rp-header">
+      <button class="rp-back" type="button"
+        onclick="closeReports()" aria-label="Back to Dashboard">
+        <span aria-hidden="true" style="font-size:16px;">‹</span>
+        Dashboard
+      </button>
+      <div class="rp-title-block">
+        <div class="rp-title">Reports</div>
+        <div class="rp-sub" id="rpRoleSub">Manager View · V2.09D</div>
+      </div>
+    </header>
+
+    <div class="rp-content">
+
+      <!-- Role badge -->
+      <span class="rp-role-badge rp-role-badge--manager" id="rpRoleBadge">📊 &nbsp;Manager Access</span>
+
+      <!-- ── Summary Stats ───────────────────────────────────── -->
+      <div class="rp-stats-grid" role="group" aria-label="Summary statistics">
+        <div class="rp-stat-card rp-stat-card--customers">
+          <span class="rp-stat-card__icon">👥</span>
+          <div class="rp-stat-card__value is-loading" id="rpStatCustomers">—</div>
+          <div class="rp-stat-card__label">Total Customers</div>
+        </div>
+        <div class="rp-stat-card rp-stat-card--stamps">
+          <span class="rp-stat-card__icon">🏅</span>
+          <div class="rp-stat-card__value is-loading" id="rpStatStampsToday">—</div>
+          <div class="rp-stat-card__label">Stamps Today</div>
+        </div>
+        <div class="rp-stat-card rp-stat-card--rewards">
+          <span class="rp-stat-card__icon">🎁</span>
+          <div class="rp-stat-card__value is-loading" id="rpStatRewardsToday">—</div>
+          <div class="rp-stat-card__label">Rewards Today</div>
+        </div>
+        <div class="rp-stat-card rp-stat-card--top">
+          <span class="rp-stat-card__icon">🏆</span>
+          <div class="rp-stat-card__value is-loading" id="rpStatTotalRewards">—</div>
+          <div class="rp-stat-card__label">Rewards Total</div>
+        </div>
+      </div>
+
+      <!-- ── Recent Stamps ──────────────────────────────────── -->
+      <div class="rp-panel">
+        <div class="rp-panel__header">
+          <span class="rp-panel__title">🥟 &nbsp;Recent Stamps</span>
+          <div class="rp-panel__meta">
+            <span class="rp-panel__count" id="rpStampsCount">—</span>
+            <button class="rp-refresh-btn" type="button" id="rpStampsRefreshBtn"
+              onclick="rpLoadStamps()" title="Refresh" aria-label="Refresh recent stamps">↻</button>
+          </div>
+        </div>
+        <div class="rp-list" id="rpStampsList" role="list">
+          <div class="rp-loading">⏳ Loading…</div>
+        </div>
+      </div>
+
+      <!-- ── Recent Claims ──────────────────────────────────── -->
+      <div class="rp-panel">
+        <div class="rp-panel__header">
+          <span class="rp-panel__title">🎁 &nbsp;Recent Claims</span>
+          <div class="rp-panel__meta">
+            <span class="rp-panel__count" id="rpClaimsCount">—</span>
+            <button class="rp-refresh-btn" type="button" id="rpClaimsRefreshBtn"
+              onclick="rpLoadClaims()" title="Refresh" aria-label="Refresh recent claims">↻</button>
+          </div>
+        </div>
+        <div class="rp-list" id="rpClaimsList" role="list">
+          <div class="rp-loading">⏳ Loading…</div>
+        </div>
+      </div>
+
+      <!-- ── Top Customers ─────────────────────────────────── -->
+      <div class="rp-panel">
+        <div class="rp-panel__header">
+          <span class="rp-panel__title">🏆 &nbsp;Top Customers</span>
+          <div class="rp-panel__meta">
+            <span class="rp-panel__count">Top 5</span>
+            <button class="rp-refresh-btn" type="button"
+              onclick="rpLoadTopCustomers()" title="Refresh" aria-label="Refresh top customers">↻</button>
+          </div>
+        </div>
+        <div class="rp-list" id="rpTopList" role="list">
+          <div class="rp-loading">⏳ Loading…</div>
+        </div>
+      </div>
+
+      <!-- ── Admin-only divider ─────────────────────────────── -->
+      <div class="rp-admin-divider" id="rpAdminDivider" style="display:none;">
+        <div class="rp-admin-divider__line"></div>
+        <div class="rp-admin-divider__text"><span>🛡️</span> Admin Only</div>
+        <div class="rp-admin-divider__line"></div>
+      </div>
+
+      <!-- ── Staff Performance (Admin) ─────────────────────── -->
+      <div class="rp-panel" id="rpStaffPerfPanel" style="display:none;">
+        <div class="rp-panel__header">
+          <span class="rp-panel__title">👥 &nbsp;Staff Performance</span>
+          <div class="rp-panel__meta">
+            <span class="rp-panel__count" id="rpStaffPerfCount">—</span>
+            <button class="rp-refresh-btn" type="button"
+              onclick="rpLoadStaffPerf()" title="Refresh" aria-label="Refresh staff performance">↻</button>
+          </div>
+        </div>
+        <div class="rp-list" id="rpStaffPerfList" role="list">
+          <div class="rp-loading">⏳ Loading…</div>
+        </div>
+      </div>
+
+      <!-- ── Staff Logins (Admin) ───────────────────────────── -->
+      <div class="rp-panel" id="rpLoginsPanel" style="display:none;">
+        <div class="rp-panel__header">
+          <span class="rp-panel__title">🔑 &nbsp;Staff Logins</span>
+          <div class="rp-panel__meta">
+            <span class="rp-panel__count" id="rpLoginsCount">—</span>
+            <button class="rp-refresh-btn" type="button"
+              onclick="rpLoadLogins()" title="Refresh" aria-label="Refresh staff logins">↻</button>
+          </div>
+        </div>
+        <div class="rp-list" id="rpLoginsList" role="list">
+          <div class="rp-loading">⏳ Loading…</div>
+        </div>
+      </div>
+
+      <!-- ── Access Denied Log (Admin) ─────────────────────── -->
+      <div class="rp-panel" id="rpDeniedPanel" style="display:none;">
+        <div class="rp-panel__header">
+          <span class="rp-panel__title">🚫 &nbsp;Access Denied Log</span>
+          <div class="rp-panel__meta">
+            <span class="rp-panel__count" id="rpDeniedCount">—</span>
+            <button class="rp-refresh-btn" type="button"
+              onclick="rpLoadDenied()" title="Refresh" aria-label="Refresh access denied log">↻</button>
+          </div>
+        </div>
+        <div class="rp-list" id="rpDeniedList" role="list">
+          <div class="rp-loading">⏳ Loading…</div>
+        </div>
+      </div>
+
+      <p class="sp-footer-note" style="margin-top:4px;">
+        <strong>Shumai-Gosh!</strong> Staff Portal · Reports V2.09D<br>
+        Data sourced live from Firebase.
+      </p>
+
+    </div><!-- /.rp-content -->
+  </div><!-- /.rp-page -->
+</div>
+
+<!-- ================================================================
      ACCESS DENIED MODAL
      ================================================================ -->
 <div class="sp-modal-backdrop" id="spAccessDeniedModal"
@@ -2362,7 +2691,8 @@ firebase.initializeApp({
   appId:             "1:62206596519:web:dbfcc1d3a164ea18af5282"
 });
 
-const _fbDb = firebase.database();
+const _fbDb   = firebase.database();
+const _fbAuth = firebase.auth();
 
 /* Convert colon-key to Firebase-safe path
    e.g. "customers:SG-000001" → "customers/SG-000001" */
@@ -2493,14 +2823,11 @@ const FEATURE_META = {
 };
 
 /* ================================================================
-   DEFAULT STAFF ACCOUNTS
-   Staff model: { staffId, username, password, role, createdAt }
+   V2.10 — FIREBASE AUTH
+   Staff credentials are managed entirely by Firebase Authentication.
+   No passwords, hashes, or user data are stored in this file.
+   Roles are assigned via Firebase Custom Claims (set server-side).
    ================================================================ */
-const DEMO_STAFF = [
-  { staffId: 'C001', username: 'cashier', password: 'cashier123', role: 'cashier', name: 'Cashier',  createdAt: '2025-01-01' },
-  { staffId: 'M001', username: 'manager', password: 'manager123', role: 'manager', name: 'Manager',  createdAt: '2025-01-01' },
-  { staffId: 'A001', username: 'admin',   password: 'admin123',   role: 'admin',   name: 'Admin',    createdAt: '2025-01-01' },
-];
 
 let selectedRole    = 'cashier';
 let lockoutInterval = null;
@@ -2600,7 +2927,417 @@ function handleFeatureClick(cardEl, featureLabel) {
     return;
   }
 
+  if (feature === 'reports') {
+    openReports();
+    return;
+  }
+
   showComingSoon(featureLabel);
+}
+
+/* ================================================================
+   V2.09D — REPORTS VIEW
+   Manager sees: summary stats, recent stamps, recent claims, top customers.
+   Admin sees all of the above PLUS staff performance, logins, access denied.
+   ================================================================ */
+
+/**
+ * openReports()
+ * Navigate to the reports view. Requires manager or admin role.
+ */
+function openReports() {
+  if (!requireStaffAuth()) return;
+  const role = getActiveRole();
+  if (role !== 'manager' && role !== 'admin') {
+    showAccessDenied('reports', 'Reports', role);
+    return;
+  }
+
+  /* Adjust badge + sub-title based on role */
+  const badge = document.getElementById('rpRoleBadge');
+  const sub   = document.getElementById('rpRoleSub');
+  if (role === 'admin') {
+    badge.textContent = '🛡️ Admin Access';
+    badge.className   = 'rp-role-badge rp-role-badge--admin';
+    sub.textContent   = 'Admin View · V2.09D';
+  } else {
+    badge.textContent = '📊  Manager Access';
+    badge.className   = 'rp-role-badge rp-role-badge--manager';
+    sub.textContent   = 'Manager View · V2.09D';
+  }
+
+  /* Show / hide admin-only panels */
+  const showAdmin = role === 'admin';
+  document.getElementById('rpAdminDivider').style.display  = showAdmin ? 'flex' : 'none';
+  document.getElementById('rpStaffPerfPanel').style.display = showAdmin ? '' : 'none';
+  document.getElementById('rpLoginsPanel').style.display    = showAdmin ? '' : 'none';
+  document.getElementById('rpDeniedPanel').style.display    = showAdmin ? '' : 'none';
+
+  showStaffView('spViewReports');
+  rpLoadAll(role);
+}
+
+/**
+ * closeReports()
+ * Return to the staff dashboard.
+ */
+function closeReports() {
+  if (!requireStaffAuth()) return;
+  showStaffView('spViewDashboard');
+}
+
+/* ── Helpers ─────────────────────────────────────────────── */
+
+/** Format a Firebase timestamp (ms) or ISO string to a short local string. */
+function _rpFmtDate(ts) {
+  const d = ts ? new Date(typeof ts === 'number' ? ts : ts) : null;
+  if (!d || isNaN(d)) return '—';
+  return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })
+    + ' ' + d.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
+}
+
+/** Return today's UTC date string YYYY-MM-DD for "today" comparisons. */
+function _rpTodayUtc() {
+  const n = new Date();
+  return n.getUTCFullYear() + '-'
+    + String(n.getUTCMonth() + 1).padStart(2, '0') + '-'
+    + String(n.getUTCDate()).padStart(2, '0');
+}
+
+function _rpSetSpinner(btnId, on) {
+  const b = document.getElementById(btnId);
+  if (b) b.classList.toggle('is-spinning', on);
+}
+
+function _rpRenderEmpty(listId) {
+  const el = document.getElementById(listId);
+  if (el) el.innerHTML = '<div class="rp-empty">No data yet.</div>';
+}
+
+/* ── Master loader ───────────────────────────────────────── */
+
+async function rpLoadAll(role) {
+  await Promise.all([
+    rpLoadSummary(),
+    rpLoadStamps(),
+    rpLoadClaims(),
+    rpLoadTopCustomers(),
+    ...(role === 'admin' ? [rpLoadStaffPerf(), rpLoadLogins(), rpLoadDenied()] : [])
+  ]);
+}
+
+/* ── Summary Stats ───────────────────────────────────────── */
+
+async function rpLoadSummary() {
+  /* Mark as loading */
+  ['rpStatCustomers','rpStatStampsToday','rpStatRewardsToday','rpStatTotalRewards'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = '…'; el.classList.add('is-loading'); }
+  });
+
+  try {
+    const todayUtc = _rpTodayUtc();
+
+    /* 1. Total customers */
+    const custSnap = await _fbDb.ref('customers').once('value');
+    const custCount = custSnap.exists() ? Object.keys(custSnap.val()).length : 0;
+
+    /* 2 & 3. Stamps today + Rewards today — scan auditLogs */
+    const auditSnap = await _fbDb.ref('auditLogs').once('value');
+    let stampsToday = 0, rewardsToday = 0, totalRewards = 0;
+    if (auditSnap.exists()) {
+      auditSnap.forEach(child => {
+        const r = child.val();
+        const ts = r.serverTimestamp || (r.timestamp ? new Date(r.timestamp).getTime() : null);
+        const dayUtc = ts
+          ? new Date(ts).getUTCFullYear() + '-'
+            + String(new Date(ts).getUTCMonth() + 1).padStart(2, '0') + '-'
+            + String(new Date(ts).getUTCDate()).padStart(2, '0')
+          : '';
+        if (r.action === 'awardStamp' && dayUtc === todayUtc) stampsToday++;
+        if (r.action === 'rewardClaim') {
+          totalRewards++;
+          if (dayUtc === todayUtc) rewardsToday++;
+        }
+      });
+    }
+
+    const set = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) { el.textContent = val; el.classList.remove('is-loading'); }
+    };
+    set('rpStatCustomers',   custCount);
+    set('rpStatStampsToday', stampsToday);
+    set('rpStatRewardsToday', rewardsToday);
+    set('rpStatTotalRewards', totalRewards);
+  } catch (e) {
+    console.warn('[V2.09D] rpLoadSummary error', e);
+    ['rpStatCustomers','rpStatStampsToday','rpStatRewardsToday','rpStatTotalRewards'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.textContent = '?'; el.classList.remove('is-loading'); }
+    });
+  }
+}
+
+/* ── Recent Stamps ───────────────────────────────────────── */
+
+async function rpLoadStamps() {
+  _rpSetSpinner('rpStampsRefreshBtn', true);
+  const list    = document.getElementById('rpStampsList');
+  const countEl = document.getElementById('rpStampsCount');
+  if (list) list.innerHTML = '<div class="rp-loading">⏳ Loading…</div>';
+
+  try {
+    const snap = await _fbDb.ref('auditLogs')
+      .orderByChild('action').equalTo('awardStamp').once('value');
+
+    const rows = [];
+    if (snap.exists()) snap.forEach(c => rows.push(c.val()));
+    rows.sort((a, b) => {
+      const ta = a.serverTimestamp || (a.timestamp ? new Date(a.timestamp).getTime() : 0);
+      const tb = b.serverTimestamp || (b.timestamp ? new Date(b.timestamp).getTime() : 0);
+      return tb - ta;
+    });
+    const shown = rows.slice(0, 20);
+    if (countEl) countEl.textContent = 'Last ' + shown.length;
+
+    if (!shown.length) { _rpRenderEmpty('rpStampsList'); return; }
+
+    list.innerHTML = shown.map(r => {
+      const ts = r.serverTimestamp || (r.timestamp ? new Date(r.timestamp).getTime() : null);
+      const detail = r.details ? ` &nbsp;·&nbsp; ${escapeHtml(r.details)}` : '';
+      return `<div class="rp-item" role="listitem">
+        <div class="rp-item__dot rp-item__dot--stamp" aria-hidden="true"></div>
+        <div class="rp-item__body">
+          <div class="rp-item__main">🏅 Stamp Awarded</div>
+          <div class="rp-item__sub">Customer: ${escapeHtml(r.customerId || '—')} &nbsp;·&nbsp; Staff: ${escapeHtml(r.staffId || '—')}${detail}</div>
+        </div>
+        <div class="rp-item__time">${escapeHtml(_rpFmtDate(ts))}</div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    console.warn('[V2.09D] rpLoadStamps error', e);
+    if (list) list.innerHTML = '<div class="rp-empty">Failed to load.</div>';
+  } finally {
+    _rpSetSpinner('rpStampsRefreshBtn', false);
+  }
+}
+
+/* ── Recent Claims ───────────────────────────────────────── */
+
+async function rpLoadClaims() {
+  _rpSetSpinner('rpClaimsRefreshBtn', true);
+  const list    = document.getElementById('rpClaimsList');
+  const countEl = document.getElementById('rpClaimsCount');
+  if (list) list.innerHTML = '<div class="rp-loading">⏳ Loading…</div>';
+
+  try {
+    /* Primary: flat rewardClaims/ node */
+    const snap = await _fbDb.ref('rewardClaims').once('value');
+    const rows = [];
+    if (snap.exists()) snap.forEach(c => rows.push({ id: c.key, ...c.val() }));
+
+    /* Fallback: if rewardClaims/ is empty, aggregate from per-customer reward_claims_log */
+    if (!rows.length) {
+      const logSnap = await _fbDb.ref('reward_claims_log').once('value');
+      if (logSnap.exists()) {
+        logSnap.forEach(customerNode => {
+          const arr = customerNode.val();
+          if (Array.isArray(arr)) arr.forEach(r => rows.push(r));
+        });
+      }
+    }
+    rows.sort((a, b) => {
+      const ta = a.serverTimestamp || (a.timestamp || a.claimedAt
+        ? new Date(a.timestamp || a.claimedAt).getTime() : 0);
+      const tb = b.serverTimestamp || (b.timestamp || b.claimedAt
+        ? new Date(b.timestamp || b.claimedAt).getTime() : 0);
+      return tb - ta;
+    });
+    const shown = rows.slice(0, 20);
+    if (countEl) countEl.textContent = 'Last ' + shown.length;
+
+    if (!shown.length) { _rpRenderEmpty('rpClaimsList'); return; }
+
+    list.innerHTML = shown.map(r => {
+      const tsRaw = r.serverTimestamp || r.timestamp || r.claimedAt || null;
+      const ts    = typeof tsRaw === 'number' ? tsRaw : (tsRaw ? new Date(tsRaw).getTime() : null);
+      const cid   = r.customerId || r.id || '—';
+      const sid   = r.staffId || '—';
+      return `<div class="rp-item" role="listitem">
+        <div class="rp-item__dot rp-item__dot--reward" aria-hidden="true"></div>
+        <div class="rp-item__body">
+          <div class="rp-item__main">🎁 Reward Claimed</div>
+          <div class="rp-item__sub">Customer: ${escapeHtml(cid)} &nbsp;·&nbsp; Staff: ${escapeHtml(sid)}</div>
+        </div>
+        <div class="rp-item__time">${escapeHtml(_rpFmtDate(ts))}</div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    console.warn('[V2.09D] rpLoadClaims error', e);
+    if (list) list.innerHTML = '<div class="rp-empty">Failed to load.</div>';
+  } finally {
+    _rpSetSpinner('rpClaimsRefreshBtn', false);
+  }
+}
+
+/* ── Top Customers ───────────────────────────────────────── */
+
+async function rpLoadTopCustomers() {
+  const list = document.getElementById('rpTopList');
+  if (list) list.innerHTML = '<div class="rp-loading">⏳ Loading…</div>';
+
+  try {
+    const snap = await _fbDb.ref('customers').once('value');
+    const customers = [];
+    if (snap.exists()) {
+      snap.forEach(c => {
+        const v = c.val();
+        customers.push({
+          id:     c.key,
+          name:   v.fullName || v.name || v.displayName || c.key,
+          stamps: typeof v.stamps === 'number' ? v.stamps : 0
+        });
+      });
+    }
+    customers.sort((a, b) => b.stamps - a.stamps);
+    const top5 = customers.slice(0, 5);
+
+    if (!top5.length) { _rpRenderEmpty('rpTopList'); return; }
+
+    const rankClass = i => i === 0 ? '1' : i === 1 ? '2' : i === 2 ? '3' : 'n';
+    list.innerHTML = top5.map((c, i) => `
+      <div class="rp-item" role="listitem">
+        <div class="rp-rank-num rp-rank-num--${rankClass(i)}" aria-hidden="true">${i + 1}</div>
+        <div class="rp-item__body">
+          <div class="rp-item__main">${escapeHtml(c.name)}</div>
+          <div class="rp-item__sub">${escapeHtml(c.id)}</div>
+        </div>
+        <span class="rp-item__badge rp-item__badge--stamps">${c.stamps} stamps</span>
+      </div>`).join('');
+  } catch (e) {
+    console.warn('[V2.09D] rpLoadTopCustomers error', e);
+    if (list) list.innerHTML = '<div class="rp-empty">Failed to load.</div>';
+  }
+}
+
+/* ── Staff Performance (Admin only) ─────────────────────── */
+
+async function rpLoadStaffPerf() {
+  const list    = document.getElementById('rpStaffPerfList');
+  const countEl = document.getElementById('rpStaffPerfCount');
+  if (list) list.innerHTML = '<div class="rp-loading">⏳ Loading…</div>';
+
+  try {
+    const snap = await _fbDb.ref('auditLogs')
+      .orderByChild('action').equalTo('awardStamp').once('value');
+
+    const byStaff = {};
+    if (snap.exists()) {
+      snap.forEach(c => {
+        const r = c.val();
+        const sid = r.staffId || 'unknown';
+        byStaff[sid] = (byStaff[sid] || 0) + 1;
+      });
+    }
+
+    const sorted = Object.entries(byStaff).sort((a, b) => b[1] - a[1]);
+    if (countEl) countEl.textContent = sorted.length + ' staff';
+
+    if (!sorted.length) { _rpRenderEmpty('rpStaffPerfList'); return; }
+
+    list.innerHTML = sorted.map(([sid, count]) => `
+      <div class="rp-item" role="listitem">
+        <div class="rp-item__dot rp-item__dot--staff" aria-hidden="true"></div>
+        <div class="rp-item__body">
+          <div class="rp-item__main">${escapeHtml(sid)}</div>
+          <div class="rp-item__sub">Stamps awarded</div>
+        </div>
+        <span class="rp-item__badge rp-item__badge--stamps">${count}</span>
+      </div>`).join('');
+  } catch (e) {
+    console.warn('[V2.09D] rpLoadStaffPerf error', e);
+    if (list) list.innerHTML = '<div class="rp-empty">Failed to load.</div>';
+  }
+}
+
+/* ── Staff Logins (Admin only) ───────────────────────────── */
+
+async function rpLoadLogins() {
+  const list    = document.getElementById('rpLoginsList');
+  const countEl = document.getElementById('rpLoginsCount');
+  if (list) list.innerHTML = '<div class="rp-loading">⏳ Loading…</div>';
+
+  try {
+    const snap = await _fbDb.ref('auditLogs').orderByChild('timestamp').once('value');
+    const rows = [];
+    if (snap.exists()) {
+      snap.forEach(c => {
+        const r = c.val();
+        if (r.action === 'login' || r.action === 'logout') rows.push(r);
+      });
+    }
+    rows.reverse(); /* newest first */
+    const shown = rows.slice(0, 20);
+    if (countEl) countEl.textContent = 'Last ' + shown.length;
+
+    if (!shown.length) { _rpRenderEmpty('rpLoginsList'); return; }
+
+    list.innerHTML = shown.map(r => {
+      const ts = r.serverTimestamp || (r.timestamp ? new Date(r.timestamp).getTime() : null);
+      const isLogin = r.action === 'login';
+      return `<div class="rp-item" role="listitem">
+        <div class="rp-item__dot rp-item__dot--${isLogin ? 'login' : 'logout'}" aria-hidden="true"></div>
+        <div class="rp-item__body">
+          <div class="rp-item__main">${isLogin ? '🔑 Login' : '🚪 Logout'}</div>
+          <div class="rp-item__sub">Staff: ${escapeHtml(r.staffId || '—')} &nbsp;·&nbsp; ${escapeHtml(r.staffRole || '—')}</div>
+        </div>
+        <div class="rp-item__time">${escapeHtml(_rpFmtDate(ts))}</div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    console.warn('[V2.09D] rpLoadLogins error', e);
+    if (list) list.innerHTML = '<div class="rp-empty">Failed to load.</div>';
+  }
+}
+
+/* ── Access Denied Log (Admin only) ─────────────────────── */
+
+async function rpLoadDenied() {
+  const list    = document.getElementById('rpDeniedList');
+  const countEl = document.getElementById('rpDeniedCount');
+  if (list) list.innerHTML = '<div class="rp-loading">⏳ Loading…</div>';
+
+  try {
+    const snap = await _fbDb.ref('auditLogs').orderByChild('timestamp').once('value');
+    const rows = [];
+    if (snap.exists()) {
+      snap.forEach(c => {
+        const r = c.val();
+        if (r.action === 'accessDenied') rows.push(r);
+      });
+    }
+    rows.reverse();
+    const shown = rows.slice(0, 20);
+    if (countEl) countEl.textContent = shown.length + ' event' + (shown.length !== 1 ? 's' : '');
+
+    if (!shown.length) { _rpRenderEmpty('rpDeniedList'); return; }
+
+    list.innerHTML = shown.map(r => {
+      const ts = r.serverTimestamp || (r.timestamp ? new Date(r.timestamp).getTime() : null);
+      return `<div class="rp-item" role="listitem">
+        <div class="rp-item__dot rp-item__dot--denied" aria-hidden="true"></div>
+        <div class="rp-item__body">
+          <div class="rp-item__main">🚫 Access Denied</div>
+          <div class="rp-item__sub">Staff: ${escapeHtml(r.staffId || '—')} &nbsp;·&nbsp; ${escapeHtml(r.details || '—')}</div>
+        </div>
+        <div class="rp-item__time">${escapeHtml(_rpFmtDate(ts))}</div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    console.warn('[V2.09D] rpLoadDenied error', e);
+    if (list) list.innerHTML = '<div class="rp-empty">Failed to load.</div>';
+  }
 }
 
 /* ================================================================
@@ -2738,10 +3475,8 @@ function showLockout(until) {
   const banner    = document.getElementById('spLockoutBanner');
   const timerEl   = document.getElementById('spLockoutTimer');
   const loginBtn  = document.getElementById('spLoginBtn');
-  const idInput   = document.getElementById('inputStaffId');
   const passInput = document.getElementById('inputStaffPass');
-  idInput.disabled = true; passInput.disabled = true; loginBtn.disabled = true;
-  document.getElementById('fieldStaffId').classList.add('sg-field--locked');
+  passInput.disabled = true; loginBtn.disabled = true;
   document.getElementById('fieldStaffPass').classList.add('sg-field--locked');
   banner.classList.add('is-visible');
   function tick() {
@@ -2749,8 +3484,7 @@ function showLockout(until) {
     if (rem <= 0) {
       stopLockout();
       const s = getAuthState(); s.attempts = 0; s.lockoutUntil = null; saveAuthState(s);
-      idInput.disabled = false; passInput.disabled = false; loginBtn.disabled = false;
-      document.getElementById('fieldStaffId').classList.remove('sg-field--locked');
+      passInput.disabled = false; loginBtn.disabled = false;
       document.getElementById('fieldStaffPass').classList.remove('sg-field--locked');
       banner.classList.remove('is-visible');
       return;
@@ -2763,62 +3497,88 @@ function showLockout(until) {
 }
 
 /* ================================================================
-   MAIN LOGIN HANDLER
+   FIREBASE AUTH — MAIN LOGIN HANDLER
+   Authenticates staff via Firebase Authentication.
+   Roles are read from Firebase Custom Claims — nothing is stored
+   in this file. No passwords, hashes, or credentials here.
    ================================================================ */
-function handleStaffLogin() {
+
+/* Map email prefix to a display email for Firebase Auth */
+function _roleToEmail(role) {
+  const map = {
+    cashier: 'cashier@shumaigosh.com',
+    manager: 'manager@shumaigosh.com',
+    admin:   'shumaigosh.admin@gmail.com'
+  };
+  return map[role] || null;
+}
+
+async function handleStaffLogin() {
   clearAlert();
-  const idVal   = document.getElementById('inputStaffId').value;
   const passVal = document.getElementById('inputStaffPass').value;
-  const idR     = validateStaffId(idVal);
   const passR   = validatePass(passVal);
-  applyStaffIdState(idR);
   applyStaffPassState(passR);
-  if (!idR.ok) { shakeField('fieldStaffId');   return; }
-  if (!passR.ok){ shakeField('fieldStaffPass'); return; }
+  if (!passR.ok) { shakeField('fieldStaffPass'); return; }
 
   const authState = getAuthState();
   if (authState.lockoutUntil && Date.now() < authState.lockoutUntil) {
     showLockout(authState.lockoutUntil); return;
   }
 
+  const email = _roleToEmail(selectedRole);
+  if (!email) { showAlert('Please select a role.'); return; }
+
   const btn = document.getElementById('spLoginBtn');
   btn.classList.add('is-loading'); btn.disabled = true;
 
-  setTimeout(() => {
+  try {
+    const cred  = await _fbAuth.signInWithEmailAndPassword(email, passVal);
+    const token = await cred.user.getIdTokenResult();
+    const claims = token.claims;
+
+    /* Verify the role from server-side custom claims */
+    if (!claims.role || claims.role !== selectedRole) {
+      await _fbAuth.signOut();
+      showAlert('Access denied for this role.');
+      btn.classList.remove('is-loading'); btn.disabled = false;
+      return;
+    }
+
+    const staff = {
+      staffId: claims.staffId || cred.user.uid.slice(0, 8).toUpperCase(),
+      name:    claims.name    || claims.role.charAt(0).toUpperCase() + claims.role.slice(1),
+      role:    claims.role
+    };
+
+    authState.attempts = 0; authState.lockoutUntil = null; saveAuthState(authState);
+    try {
+      sessionStorage.setItem(SP_SESSION_ID_KEY,   staff.staffId);
+      sessionStorage.setItem(SP_SESSION_ROLE_KEY, staff.role);
+    } catch {}
+
+    auditLogin(staff.staffId, staff.role);
+    loadDashboard(staff);
+    showStaffView('spViewDashboard');
+
+  } catch (err) {
     btn.classList.remove('is-loading'); btn.disabled = false;
 
-    const normalId = idVal.trim().toLowerCase();
-    const match = DEMO_STAFF.find(s =>
-      s.username === normalId && s.password === passVal && s.role === selectedRole
-    );
+    const prev = authState.attempts || 0;
+    const next = prev + 1;
+    const rem  = SP_MAX_ATTEMPTS - next;
 
-    if (match) {
-      authState.attempts = 0; authState.lockoutUntil = null; saveAuthState(authState);
-      try {
-        sessionStorage.setItem(SP_SESSION_ID_KEY,   match.staffId);
-        sessionStorage.setItem(SP_SESSION_ROLE_KEY, match.role);
-      } catch {}
-      auditLogin(match.staffId, match.role);
-      loadDashboard(match);
-      showStaffView('spViewDashboard');
-
+    if (next >= SP_MAX_ATTEMPTS) {
+      const until = Date.now() + SP_LOCKOUT_MS;
+      authState.attempts = next; authState.lockoutUntil = until; saveAuthState(authState);
+      showLockout(until);
     } else {
-      const prev = authState.attempts || 0;
-      const next = prev + 1;
-      const rem  = SP_MAX_ATTEMPTS - next;
-      if (next >= SP_MAX_ATTEMPTS) {
-        const until = Date.now() + SP_LOCKOUT_MS;
-        authState.attempts = next; authState.lockoutUntil = until; saveAuthState(authState);
-        showLockout(until);
-      } else {
-        authState.attempts = next; authState.lockoutUntil = null; saveAuthState(authState);
-        const remMsg = rem === 1 ? '1 attempt remaining.' : `${rem} attempts remaining.`;
-        showAlert(`Incorrect username, password, or role. ${remMsg}`);
-        applyStaffPassState({ ok:false, msg:'Incorrect credentials.' });
-        shakeField('fieldStaffPass');
-      }
+      authState.attempts = next; authState.lockoutUntil = null; saveAuthState(authState);
+      const remMsg = rem === 1 ? '1 attempt remaining.' : `${rem} attempts remaining.`;
+      showAlert(`Incorrect password or role. ${remMsg}`);
+      applyStaffPassState({ ok: false, msg: 'Incorrect credentials.' });
+      shakeField('fieldStaffPass');
     }
-  }, 900);
+  }
 }
 
 /* ================================================================
@@ -4669,14 +5429,13 @@ function alRender() {
    ================================================================ */
 function handleSignOut() {
   auditLogout(); /* V2.07D — must fire before session keys are cleared */
+  _fbAuth.signOut().catch(() => {});
   try {
     sessionStorage.removeItem(SP_SESSION_ID_KEY);
     sessionStorage.removeItem(SP_SESSION_ROLE_KEY);
   } catch {}
   /* Reset login form */
-  document.getElementById('inputStaffId').value   = '';
   document.getElementById('inputStaffPass').value = '';
-  document.getElementById('fieldStaffId').classList.remove('sg-field--valid','sg-field--error');
   document.getElementById('fieldStaffPass').classList.remove('sg-field--valid','sg-field--error');
   selectRole('cashier');
   clearAlert();
@@ -4687,31 +5446,39 @@ function handleSignOut() {
    INIT
    ================================================================ */
 (function init() {
-  /* 1. Customer protection — if a customer session is active with no
-        staff session, send them back to the customer app. */
+  /* 1. Customer protection */
   if (blockCustomerAccess()) return;
 
-  /* 2. Lockout check — restore any in-progress lockout timer. */
+  /* 2. Lockout check */
   const s = getAuthState();
   if (s.lockoutUntil && Date.now() < s.lockoutUntil) showLockout(s.lockoutUntil);
 
-  /* 3. Session resume — if a valid staff session already exists,
-        skip the login screen and go straight to the dashboard. */
-  const staffId = getActiveStaffId();
-  const staffRole = getActiveRole();
-  if (staffId && staffRole) {
-    const staff = DEMO_STAFF.find(m => m.staffId === staffId && m.role === staffRole);
-    if (staff) {
+  /* 3. Session resume via Firebase Auth state */
+  _fbAuth.onAuthStateChanged(async (user) => {
+    if (!user) return; /* No active session — stay on login screen */
+
+    try {
+      const token  = await user.getIdTokenResult();
+      const claims = token.claims;
+      if (!claims.role) { await _fbAuth.signOut(); return; }
+
+      const staff = {
+        staffId: claims.staffId || user.uid.slice(0, 8).toUpperCase(),
+        name:    claims.name    || claims.role.charAt(0).toUpperCase() + claims.role.slice(1),
+        role:    claims.role
+      };
+
+      try {
+        sessionStorage.setItem(SP_SESSION_ID_KEY,   staff.staffId);
+        sessionStorage.setItem(SP_SESSION_ROLE_KEY, staff.role);
+      } catch {}
+
       loadDashboard(staff);
       showStaffView('spViewDashboard');
-      return;
+    } catch {
+      await _fbAuth.signOut();
     }
-    /* Session data is stale/invalid — clear it */
-    try {
-      sessionStorage.removeItem(SP_SESSION_ID_KEY);
-      sessionStorage.removeItem(SP_SESSION_ROLE_KEY);
-    } catch {}
-  }
+  });
 })();
 </script>
 </body>
