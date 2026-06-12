@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shumai-Gosh! — Staff Portal V2.07D</title>
+<title>Shumai-Gosh! — Staff Portal V2.09C</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -1162,6 +1162,91 @@ body {
 }
 
 /* ============================================================
+   V2.09D-B — CLAIM HISTORY PANEL
+   Gold accent — visually distinct from stamp history (pink).
+   ============================================================ */
+.cl-claims-btn {
+  width: 100%; height: 44px;
+  font-family: var(--sg-font-body); font-size: 13px; font-weight: 800;
+  letter-spacing: 0.06em; color: rgba(255,195,0,0.55);
+  background: transparent;
+  border: 1.5px solid rgba(255,195,0,0.16);
+  border-radius: var(--sg-radius-md); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+.cl-claims-btn:hover {
+  color: rgba(255,195,0,0.85);
+  border-color: rgba(255,195,0,0.32);
+  background: rgba(255,195,0,0.05);
+}
+.cl-claims-panel {
+  width: 100%;
+  background: rgba(255,195,0,0.025);
+  border: 1.5px solid rgba(255,195,0,0.14);
+  border-radius: var(--sg-radius-md);
+  overflow: hidden;
+  margin-top: 4px;
+  animation: view-in 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.cl-claims-panel__header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid rgba(255,195,0,0.1);
+}
+.cl-claims-panel__title {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.14em;
+  text-transform: uppercase; color: rgba(255,195,0,0.55);
+}
+.cl-claims-panel__count {
+  font-size: 11px; font-weight: 800;
+  color: rgba(255,195,0,0.35); letter-spacing: 0.04em;
+}
+.cl-claims-list {
+  max-height: 240px; overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.cl-claims-list::-webkit-scrollbar { width: 3px; }
+.cl-claims-list::-webkit-scrollbar-thumb { background: rgba(255,195,0,0.18); border-radius: 99px; }
+.cl-claim-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255,195,0,0.07);
+}
+.cl-claim-item:last-child { border-bottom: none; }
+.cl-claim-item__icon {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(255,195,0,0.1);
+  border: 1px solid rgba(255,195,0,0.22);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; line-height: 1;
+}
+.cl-claim-item__body { flex: 1; min-width: 0; }
+.cl-claim-item__type {
+  font-size: 11px; font-weight: 800;
+  color: rgba(255,195,0,0.78);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cl-claim-item__staff {
+  font-size: 10px; font-weight: 700;
+  color: rgba(255,200,180,0.32); margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cl-claim-item__time {
+  font-size: 10px; font-weight: 800;
+  color: rgba(255,195,0,0.38); flex-shrink: 0; text-align: right;
+  line-height: 1.5;
+}
+.cl-claims-empty {
+  padding: 24px 16px; text-align: center;
+  font-size: 12px; font-weight: 700; color: rgba(255,195,0,0.35);
+}
+.cl-claims-loading {
+  padding: 20px 16px; text-align: center;
+  font-size: 12px; font-weight: 700; color: rgba(255,200,180,0.3);
+}
+
+/* ============================================================
    V2.06C — CUSTOMER NOT FOUND
    ============================================================ */
 .cl-notfound {
@@ -1386,8 +1471,9 @@ body {
 .al-item__dot--qrScan      { background: #60C8F0; box-shadow: 0 0 6px rgba(96,200,240,0.4); }
 .al-item__dot--manualLookup{ background: #A880F0; box-shadow: 0 0 6px rgba(168,128,240,0.4); }
 .al-item__dot--awardStamp  { background: var(--sp-gold); box-shadow: 0 0 6px rgba(255,195,0,0.5); }
-.al-item__dot--rewardClaim { background: #F2849E; box-shadow: 0 0 6px rgba(242,132,158,0.5); }
-.al-item__dot--accessDenied{ background: #D63060; box-shadow: 0 0 6px rgba(214,48,96,0.5); }
+.al-item__dot--rewardClaim       { background: #F2849E; box-shadow: 0 0 6px rgba(242,132,158,0.5); }
+.al-item__dot--rewardRedemption  { background: #FF8C42; box-shadow: 0 0 6px rgba(255,140,66,0.5); }
+.al-item__dot--accessDenied      { background: #D63060; box-shadow: 0 0 6px rgba(214,48,96,0.5); }
 .al-item__body { min-width: 0; }
 .al-item__action {
   font-size: 12px; font-weight: 800;
@@ -1860,6 +1946,27 @@ body {
               </div>
               <div class="cl-history-list" id="clHistoryList">
                 <div class="cl-history-loading">Loading…</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- V2.09D-B: Claim history toggle button -->
+          <button class="cl-claims-btn" type="button" id="clClaimsBtn"
+            onclick="toggleClaimHistory()" aria-expanded="false"
+            aria-label="View reward claim history for this customer">
+            <span aria-hidden="true">🎁</span>
+            <span id="clClaimsBtnText">View Claim History</span>
+          </button>
+
+          <!-- Claim history panel (hidden until toggled) -->
+          <div id="clClaimsPanel" style="display:none;">
+            <div class="cl-claims-panel">
+              <div class="cl-claims-panel__header">
+                <span class="cl-claims-panel__title">Reward Claims</span>
+                <span class="cl-claims-panel__count" id="clClaimsCount">—</span>
+              </div>
+              <div class="cl-claims-list" id="clClaimsList">
+                <div class="cl-claims-loading">Loading…</div>
               </div>
             </div>
           </div>
@@ -3265,6 +3372,14 @@ function showCustomerLookup(customer) {
   /* ── Store active customer for stamp/reward actions ── */
   _clActiveCustomerId = customer.customerId;
 
+  /* V2.09C — Integrity check before rendering any UI.
+     Corrects any illegal state on the in-memory object; if a correction
+     was made, writes it back to Firebase silently. */
+  const _lookupInteg = _spVerifyRewardIntegrity(customer);
+  if (_lookupInteg.corrected) {
+    SG_BACKEND.set('customers:' + customer.customerId, customer).catch(() => {});
+  }
+
   /* ── Reset history panel on each new customer load ── */
   const _hp = document.getElementById('clHistoryPanel');
   const _hb = document.getElementById('clHistoryBtn');
@@ -3272,6 +3387,14 @@ function showCustomerLookup(customer) {
   if (_hp) _hp.style.display = 'none';
   if (_hb) _hb.setAttribute('aria-expanded', 'false');
   if (_ht) _ht.textContent = 'View Stamp History';
+
+  /* V2.09D-B — Reset claim history panel on each new customer load */
+  const _cp = document.getElementById('clClaimsPanel');
+  const _cb = document.getElementById('clClaimsBtn');
+  const _ct = document.getElementById('clClaimsBtnText');
+  if (_cp) _cp.style.display = 'none';
+  if (_cb) _cb.setAttribute('aria-expanded', 'false');
+  if (_ct) _ct.textContent = 'View Claim History';
 
   /* ── Avatar / profile photo ── */
   const avatarEl = document.getElementById('clAvatar');
@@ -3307,29 +3430,208 @@ function showCustomerLookup(customer) {
    ================================================================ */
 
 /* ── Helpers mirroring customer app logic ── */
+
+/* Canonical three-state constants (mirror of customer app REWARD_STATE) */
+const SP_REWARD_STATE = Object.freeze({
+  LOCKED:   'LOCKED',
+  UNLOCKED: 'UNLOCKED',
+  CLAIMED:  'CLAIMED'
+});
+
+/**
+ * _spNormaliseRewardState(raw)
+ * Maps any stored string to a canonical SP_REWARD_STATE constant.
+ * Handles both UPPER and lower case to stay in sync with the customer app.
+ */
+function _spNormaliseRewardState(raw) {
+  if (!raw) return null;
+  const u = String(raw).toUpperCase();
+  if (u === 'UNLOCKED') return SP_REWARD_STATE.UNLOCKED;
+  if (u === 'CLAIMED')  return SP_REWARD_STATE.CLAIMED;
+  if (u === 'LOCKED')   return SP_REWARD_STATE.LOCKED;
+  return null;
+}
+
+/**
+ * _deriveRewardStatus(stamps, claimed)
+ * Returns the canonical reward state (UPPER) matching the customer app engine.
+ * V2.09C: now returns SP_REWARD_STATE constants instead of lowercase strings,
+ * keeping the staff portal fully aligned with the three-state model.
+ * Legacy callers that compare against lowercase 'unlocked' are updated below.
+ */
 function _deriveRewardStatus(stamps, claimed) {
-  const earned = Math.floor(stamps / 5);
-  if (earned > (claimed || 0)) return 'unlocked';
-  if (stamps >= 5) return 'unlocked';
-  return 'locked';
+  const s = stamps  || 0;
+  const c = claimed || 0;
+  const earned = Math.floor(s / 5);
+  if (earned > c) return SP_REWARD_STATE.UNLOCKED;
+  return SP_REWARD_STATE.LOCKED;
 }
 
 function _buildPassport(customer) {
+  const state = _deriveRewardStatus(customer.stamps || 0, customer.rewardsClaimed || 0);
   return {
     passportNumber:  customer.passportNumber || ('PASS-' + customer.customerId.replace('SG-','')),
     customerId:      customer.customerId,
     currentStamps:   customer.stamps || 0,
-    rewardStatus:    _deriveRewardStatus(customer.stamps || 0, customer.rewardsClaimed || 0),
+    /* V2.09C: store both formal state and legacy lowercase alias */
+    rewardState:     state,
+    rewardStatus:    state.toLowerCase(),
     claimedRewards:  customer.rewardsClaimed || 0,
     activityHistory: [],
     updatedAt:       new Date().toISOString()
   };
 }
 
+/* ================================================================
+   V2.09C — REWARD STATE INTEGRITY ENGINE (Staff Portal)
+   Detects illegal reward state combinations, auto-corrects them,
+   and writes every correction to Firebase for the audit trail.
+
+   Aligns with the customer app's three-state model:
+     LOCKED | UNLOCKED | CLAIMED
+
+   Rules enforced:
+     R1  State must be LOCKED, UNLOCKED, or CLAIMED
+     R2  UNLOCKED and CLAIMED cannot coexist
+     R3  State must be derivable from stamps + rewardsClaimed
+     R4  Counters must be non-negative integers
+     R6  rewardStatus (legacy) must match canonical rewardState
+   ================================================================ */
+
+/**
+ * _spAuditStateCorrection(customerId, before, after, reason)
+ * Writes a correction record to Firebase rewardStateCorrections/.
+ * Silent — never throws or blocks normal operations.
+ */
+async function _spAuditStateCorrection(customerId, before, after, reason) {
+  try {
+    const corrId = 'RSC-' + Date.now() + '-' + Math.random().toString(36).slice(2,6).toUpperCase();
+    const record = {
+      corrId,
+      customerId,
+      timestamp:   new Date().toISOString(),
+      stateBefore: before,
+      stateAfter:  after,
+      reason,
+      source:      'staff-portal',
+      staffId:     getActiveStaffId()  || 'UNKNOWN',
+      staffRole:   getActiveRole()     || 'unknown'
+    };
+    await SG_BACKEND.set('rewardStateCorrections:' + corrId, record);
+    console.info('[V2.09C] State correction logged:', corrId, reason);
+  } catch (e) {
+    console.warn('[V2.09C] Failed to write state correction audit:', e);
+  }
+}
+
+/**
+ * _spVerifyRewardIntegrity(customer)
+ * Inspects a customer record for illegal reward state and auto-corrects.
+ * Mutates the object in-place if a correction is needed.
+ *
+ * Returns: { corrected: boolean, reason: string|null }
+ *
+ * Called:
+ *   - After Step 1 (Customer Lookup) in handleClaimReward
+ *   - After customer record is written (Step 4/5) to validate what was saved
+ *   - In showCustomerLookup before rendering the UI
+ *   - In handleAwardStamp after the customer record is updated
+ */
+function _spVerifyRewardIntegrity(customer) {
+  if (!customer || !customer.customerId) return { corrected: false, reason: null };
+
+  const stamps  = customer.stamps        || 0;
+  const claimed = customer.rewardsClaimed || 0;
+
+  const stateBefore = {
+    rewardState:    customer.rewardState,
+    rewardStatus:   customer.rewardStatus,
+    stamps,
+    rewardsClaimed: claimed
+  };
+
+  let corrected = false;
+  const reasons = [];
+
+  /* ── R4: Counters must be non-negative integers ── */
+  if (!Number.isInteger(stamps) || stamps < 0) {
+    customer.stamps = 0;
+    reasons.push('R4: stamps invalid (' + stamps + '), reset to 0');
+    corrected = true;
+  }
+  if (!Number.isInteger(claimed) || claimed < 0) {
+    customer.rewardsClaimed = 0;
+    reasons.push('R4: rewardsClaimed invalid (' + claimed + '), reset to 0');
+    corrected = true;
+  }
+
+  const s = customer.stamps;
+  const c = customer.rewardsClaimed;
+
+  /* ── R1: Normalise raw state ── */
+  const rawState  = _spNormaliseRewardState(customer.rewardState || customer.rewardStatus);
+  const canonical = _deriveRewardStatus(s, c); /* LOCKED or UNLOCKED */
+
+  let correctedState = rawState;
+
+  /* ── R2: UNLOCKED+CLAIMED coexistence is always illegal ── */
+  if (rawState === SP_REWARD_STATE.CLAIMED && canonical === SP_REWARD_STATE.UNLOCKED) {
+    /* Stamps haven't been reset yet — reset them and keep CLAIMED */
+    customer.stamps = s % 5;
+    correctedState  = SP_REWARD_STATE.CLAIMED;
+    reasons.push('R2: CLAIMED+UNLOCKED coexistence — stamps reset from ' + s + ' to ' + customer.stamps);
+    corrected = true;
+  } else if (rawState === SP_REWARD_STATE.UNLOCKED && _deriveRewardStatus(s, c) === SP_REWARD_STATE.LOCKED) {
+    /* Stored UNLOCKED but counters say LOCKED */
+    correctedState = SP_REWARD_STATE.LOCKED;
+    reasons.push('R3: stored UNLOCKED but counters derive LOCKED (stamps=' + s + ', claimed=' + c + ')');
+    corrected = true;
+  } else if (!rawState) {
+    /* R1: No valid state — derive it */
+    correctedState = canonical;
+    reasons.push('R1: rewardState absent or invalid, derived from counters');
+    corrected = true;
+  } else if (rawState !== canonical && rawState !== SP_REWARD_STATE.CLAIMED) {
+    /* R3: Inconsistent and not CLAIMED (CLAIMED legitimately differs after reset) */
+    correctedState = canonical;
+    reasons.push('R3: "' + rawState + '" inconsistent with derived "' + canonical + '"');
+    corrected = true;
+  }
+
+  /* ── R6: Legacy rewardStatus must match ── */
+  const expectedStatus = (correctedState || canonical).toLowerCase();
+  if (customer.rewardStatus !== expectedStatus) {
+    reasons.push('R6: rewardStatus "' + customer.rewardStatus + '" out of sync');
+    corrected = true;
+  }
+
+  if (corrected) {
+    customer.rewardState  = correctedState || canonical;
+    customer.rewardStatus = customer.rewardState.toLowerCase();
+
+    const stateAfter = {
+      rewardState:    customer.rewardState,
+      rewardStatus:   customer.rewardStatus,
+      stamps:         customer.stamps,
+      rewardsClaimed: customer.rewardsClaimed
+    };
+
+    _spAuditStateCorrection(
+      customer.customerId,
+      stateBefore,
+      stateAfter,
+      reasons.join('; ')
+    ).catch(() => {});
+  }
+
+  return { corrected, reason: reasons.length ? reasons.join('; ') : null };
+}
+
 /**
  * _spLogActivity(customerId, eventType, title, description)
  * Fetches the existing activity array from Firebase, appends a new
  * entry, and writes it back — so the customer app sees it immediately.
+ * V2.09B: returns true on success, false on failure.
  */
 async function _spLogActivity(customerId, eventType, title, description) {
   const activityId = 'ACT-' + Date.now() + '-' + Math.random().toString(36).slice(2,7).toUpperCase();
@@ -3339,13 +3641,16 @@ async function _spLogActivity(customerId, eventType, title, description) {
     const existing = await SG_BACKEND.get('activity:' + customerId);
     const log = Array.isArray(existing) ? existing : [];
     log.unshift(entry); /* newest first */
-    await SG_BACKEND.set('activity:' + customerId, log);
-  } catch {}
+    const ok = await SG_BACKEND.set('activity:' + customerId, log);
+    return ok !== false; /* SG_BACKEND.set returns true on success, false on failure */
+  } catch { return false; }
 }
 
 /**
  * _spSyncPassport(customer)
  * Updates the passport collection to match the current customer state.
+ * V2.09B: returns true on success, false on failure.
+ * V2.09C: writes formal rewardState field; respects CLAIMED state.
  */
 async function _spSyncPassport(customer) {
   try {
@@ -3353,10 +3658,17 @@ async function _spSyncPassport(customer) {
     const passport = existing || _buildPassport(customer);
     passport.currentStamps  = customer.stamps || 0;
     passport.claimedRewards = customer.rewardsClaimed || 0;
-    passport.rewardStatus   = _deriveRewardStatus(passport.currentStamps, passport.claimedRewards);
-    passport.updatedAt      = new Date().toISOString();
-    await SG_BACKEND.set('passport:' + customer.customerId, passport);
-  } catch {}
+    /* V2.09C: respect CLAIMED — don't overwrite with a re-derivation */
+    const storedState = _spNormaliseRewardState(customer.rewardState);
+    const state = (storedState === SP_REWARD_STATE.CLAIMED)
+      ? SP_REWARD_STATE.CLAIMED
+      : _deriveRewardStatus(passport.currentStamps, passport.claimedRewards);
+    passport.rewardState  = state;
+    passport.rewardStatus = state.toLowerCase(); /* backward-compat */
+    passport.updatedAt    = new Date().toISOString();
+    const ok = await SG_BACKEND.set('passport:' + customer.customerId, passport);
+    return ok !== false;
+  } catch { return false; }
 }
 
 /**
@@ -3379,7 +3691,8 @@ function _updateStampUI(customer) {
   const claimBtn     = document.getElementById('clClaimBtn');
   const awardBtn     = document.getElementById('clAwardBtn');
 
-  if (status === 'unlocked') {
+  /* V2.09C: compare against uppercase constant */
+  if (status === SP_REWARD_STATE.UNLOCKED) {
     rewardBanner.style.display = 'block';
     claimBtn.style.display     = 'flex';
     awardBtn.style.display     = 'none';
@@ -3420,6 +3733,42 @@ async function _spWriteStampTransaction(customerId) {
     console.warn('[V2.07B] Failed to write stamp transaction', e);
   }
   return record;
+}
+
+/* ================================================================
+   V2.09D-A — CLAIM RECORD STORAGE
+   Writes a dedicated reward claim record to rewardClaims/{claimId}
+   whenever a reward redemption succeeds.
+
+   Schema: { claimId, customerId, customerName, staffId, staffRole,
+             rewardType, redeemedAt }
+   Collection: rewardClaims/
+   ================================================================ */
+
+/**
+ * _spWriteClaimRecord(customerId, customerName)
+ * Creates a dedicated claim record in rewardClaims/ after a successful
+ * reward redemption. Silent — never throws or blocks normal operations.
+ */
+async function _spWriteClaimRecord(customerId, customerName) {
+  try {
+    const staffId  = getActiveStaffId() || 'UNKNOWN';
+    const staffRole = getActiveRole()   || 'unknown';
+    const claimId  = 'CLM-' + Date.now() + '-' + Math.random().toString(36).slice(2,6).toUpperCase();
+    const record = {
+      claimId,
+      customerId:   customerId   || null,
+      customerName: customerName || null,
+      staffId,
+      staffRole,
+      rewardType:   'Free Shumai',
+      redeemedAt:   new Date().toISOString()
+    };
+    await SG_BACKEND.set('rewardClaims:' + claimId, record);
+    console.info('[V2.09D-A] Claim record written:', claimId);
+  } catch (e) {
+    console.warn('[V2.09D-A] Failed to write claim record:', e);
+  }
 }
 
 /**
@@ -3496,6 +3845,105 @@ function _renderStampHistory(transactions) {
   }).join('');
 }
 
+/* ================================================================
+   V2.09D-B — CLAIM HISTORY VIEWER
+   Reads from rewardClaims/ filtered by customerId.
+   Displays: Reward Type · Date Claimed · Staff Member
+   ================================================================ */
+
+/**
+ * toggleClaimHistory()
+ * Shows/hides the claim history panel and fetches data on first open.
+ */
+async function toggleClaimHistory() {
+  const panel   = document.getElementById('clClaimsPanel');
+  const btn     = document.getElementById('clClaimsBtn');
+  const btnText = document.getElementById('clClaimsBtnText');
+  const isOpen  = panel.style.display !== 'none';
+
+  if (isOpen) {
+    panel.style.display = 'none';
+    btn.setAttribute('aria-expanded', 'false');
+    btnText.textContent = 'View Claim History';
+    return;
+  }
+
+  panel.style.display = 'block';
+  btn.setAttribute('aria-expanded', 'true');
+  btnText.textContent = 'Hide Claim History';
+  _renderClaimHistory(null); /* show loading state */
+
+  try {
+    /* Server-side filter: orderByChild + equalTo avoids full-collection download */
+    const snap = await _fbDb.ref('rewardClaims')
+      .orderByChild('customerId')
+      .equalTo(_clActiveCustomerId)
+      .once('value');
+
+    const claims = [];
+    if (snap.exists()) {
+      snap.forEach(child => { claims.push(child.val()); });
+      /* Sort newest-first by redeemedAt */
+      claims.sort((a, b) => {
+        const ta = a.redeemedAt ? new Date(a.redeemedAt).getTime() : 0;
+        const tb = b.redeemedAt ? new Date(b.redeemedAt).getTime() : 0;
+        return tb - ta;
+      });
+    }
+    _renderClaimHistory(claims);
+  } catch (e) {
+    console.warn('[V2.09D-B] Claim history fetch failed:', e);
+    _renderClaimHistory([]);
+  }
+}
+
+/**
+ * _renderClaimHistory(claims)
+ * Renders claim rows into the claim history panel.
+ * Pass null to show a loading spinner.
+ */
+function _renderClaimHistory(claims) {
+  const list    = document.getElementById('clClaimsList');
+  const countEl = document.getElementById('clClaimsCount');
+  if (!list) return;
+
+  if (claims === null) {
+    list.innerHTML = '<div class="cl-claims-loading">⏳ Loading…</div>';
+    if (countEl) countEl.textContent = '—';
+    return;
+  }
+
+  if (countEl) countEl.textContent = claims.length + ' claim' + (claims.length !== 1 ? 's' : '');
+
+  if (claims.length === 0) {
+    list.innerHTML = '<div class="cl-claims-empty">No reward claims on record.</div>';
+    return;
+  }
+
+  list.innerHTML = claims.map(c => {
+    const date    = c.redeemedAt ? new Date(c.redeemedAt) : null;
+    const dateStr = date
+      ? date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })
+      : '—';
+    const timeStr = date
+      ? date.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })
+      : '';
+    const staffLabel = c.staffId
+      ? escapeHtml(c.staffId) + (c.staffRole ? ' (' + escapeHtml(c.staffRole) + ')' : '')
+      : '—';
+
+    return `
+      <div class="cl-claim-item">
+        <div class="cl-claim-item__icon" aria-hidden="true">🎁</div>
+        <div class="cl-claim-item__body">
+          <div class="cl-claim-item__type">${escapeHtml(c.rewardType || 'Free Reward')}</div>
+          <div class="cl-claim-item__staff">Staff: ${staffLabel}</div>
+        </div>
+        <div class="cl-claim-item__time">${escapeHtml(dateStr)}<br>${escapeHtml(timeStr)}</div>
+      </div>`;
+  }).join('');
+}
+
 /**
  * handleAwardStamp()  — V2.07E
  * Added: processing lock (button disabled immediately) +
@@ -3544,8 +3992,14 @@ async function handleAwardStamp() {
     customer.stamps       = (customer.stamps || 0) + 1;
     const n               = customer.stamps;
     const cycleCompleted  = (n % 5 === 0);
-    customer.rewardStatus = _deriveRewardStatus(n, customer.rewardsClaimed || 0);
+    /* V2.09C: derive formal state (UNLOCKED when cycle completes) and keep legacy alias */
+    const stampedState    = _deriveRewardStatus(n, customer.rewardsClaimed || 0);
+    customer.rewardState  = stampedState;
+    customer.rewardStatus = stampedState.toLowerCase();
     customer.updatedAt    = new Date().toISOString();
+
+    /* V2.09C — Integrity check after increment, before writing */
+    _spVerifyRewardIntegrity(customer);
 
     /* Step 3, 4, 5, 6 — write all collections in parallel */
     await Promise.all([
@@ -3581,69 +4035,265 @@ async function handleAwardStamp() {
 }
 
 /**
- * handleClaimReward()  — V2.07D
- * Added: processing lock + 30-second same-cycle duplicate guard (local + Firebase).
+ * handleClaimReward()  — V2.09B
+ * Redemption Workflow Audit: each step in the spec flow is executed
+ * sequentially, verified individually, and written to the audit log.
+ *
+ * Flow (per V2.09B spec):
+ *   1. Customer Lookup        — verify record exists (live Firebase read)
+ *   2. Reward Available       — V2.09A validation gate (5 checks)
+ *   3. Claim Reward           — compute new stamp/claimed values
+ *   4. Reward Redeemed        — write customer record to Firebase
+ *   5. Customer Record Updated — verify customer write succeeded
+ *   6. Activity Logged        — write activity entry, verify success
+ *   7. Audit Logged           — write rewardClaim audit entry
+ *
+ * Each step outcome (OK / FAIL) is persisted via auditRedemptionStep().
+ * Step failures surface a specific error message; the workflow stops
+ * at the failed step and resets the button.
  */
 async function handleClaimReward() {
   if (!_clActiveCustomerId) return;
-  const btn    = document.getElementById('clClaimBtn');
+  const btn = document.getElementById('clClaimBtn');
 
-  /* V2.07C — Processing lock */
+  /* Processing lock — ignore re-clicks */
   if (btn.disabled) return;
-  btn.disabled = true;
-  btn.innerHTML = '<span aria-hidden="true">⏳</span> Processing…';
+  btn.disabled  = true;
+  btn.innerHTML = '<span aria-hidden="true">⏳</span> Validating…';
+
+  /* ── Shared abort helper ── */
+  function _abort(btnLabel, toastMsg) {
+    btn.innerHTML = btnLabel;
+    if (toastMsg) _showDuplicateToast(toastMsg);
+    setTimeout(() => {
+      btn.disabled  = false;
+      btn.innerHTML = '<span aria-hidden="true">🎁</span> Claim Free Reward';
+    }, 2500);
+  }
+
+  const cid = _clActiveCustomerId; /* captured once for the whole flow */
 
   try {
-    let customer = await SG_BACKEND.get('customers:' + _clActiveCustomerId);
+
+    /* ══════════════════════════════════════════════════════════════════
+       STEP 1 — Customer Lookup
+       Fetch the authoritative live record. All subsequent steps use
+       this snapshot — not the UI state — to prevent stale-data exploits.
+       ══════════════════════════════════════════════════════════════════ */
+    let customer = null;
+    try {
+      customer = await SG_BACKEND.get('customers:' + cid);
+    } catch (e) {
+      auditRedemptionStep(cid, 'Customer Lookup', 'FAIL', 'Firebase read error: ' + (e && e.message ? e.message : 'unknown'));
+      _abort('❌ Lookup Failed', '🚫 Step 1 Failed — Could not reach the database. Check your connection and try again.');
+      return;
+    }
+
     if (!customer) {
-      btn.innerHTML = '❌ Customer Not Found';
-      setTimeout(() => { btn.disabled = false; btn.innerHTML = '<span aria-hidden="true">🎁</span> Claim Free Reward'; }, 2000);
+      auditRedemptionStep(cid, 'Customer Lookup', 'FAIL', 'Customer record not found in Firebase.');
+      _abort('❌ Customer Not Found', '🚫 Step 1 Failed — Customer Not Found. No record exists for this ID.');
+      return;
+    }
+    auditRedemptionStep(cid, 'Customer Lookup', 'OK', 'Record found: ' + cid);
+
+    /* V2.09C — Integrity check on the live record before any further processing.
+       Detects and auto-corrects illegal states before we validate or write anything. */
+    const integ = _spVerifyRewardIntegrity(customer);
+    if (integ.corrected) {
+      auditRedemptionStep(cid, 'Customer Lookup', 'OK',
+        'State correction applied before redemption: ' + integ.reason);
+      /* Write the corrected record back to Firebase before proceeding */
+      await SG_BACKEND.set('customers:' + cid, customer);
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
+       STEP 2 — Reward Available (V2.09A validation gate, 5 checks)
+       All checks run against the live snapshot fetched in Step 1.
+       ══════════════════════════════════════════════════════════════════ */
+    btn.innerHTML = '<span aria-hidden="true">⏳</span> Checking Reward…';
+
+    const stampsNow  = customer.stamps        || 0;
+    const claimedNow = customer.rewardsClaimed || 0;
+
+    /* Check 2a — rewardState must be UNLOCKED
+       V2.09C: compare against uppercase SP_REWARD_STATE constant. */
+    const liveRewardState = _deriveRewardStatus(stampsNow, claimedNow);
+    if (liveRewardState !== SP_REWARD_STATE.UNLOCKED) {
+      auditRedemptionStep(cid, 'Reward Available', 'FAIL',
+        'State is "' + liveRewardState + '", not "unlocked". stamps=' + stampsNow + ', claimed=' + claimedNow);
+      _abort('❌ Reward Not Available', '🚫 Step 2 Failed — Reward is not unlocked for this customer (state: ' + liveRewardState + ').');
       return;
     }
 
-    const stampsNow = customer.stamps || 0;
-
-    /* V2.07C/D — Reward duplicate guard: same customer + same stamp total within 30s.
-       Checks both the local fingerprint (fast path) and the shared Firebase
-       log (cross-device protection). */
-    if (_dpCheckRewardDuplicate(_clActiveCustomerId, stampsNow) ||
-        await _dpCheckRewardDuplicateRemote(_clActiveCustomerId, stampsNow)) {
-      btn.innerHTML = '⚠️ Already Claimed';
-      _showDuplicateToast('⚠️ Duplicate Reward Claim Detected — this reward was already claimed just now.');
-      setTimeout(() => { btn.disabled = false; btn.innerHTML = '<span aria-hidden="true">🎁</span> Claim Free Reward'; }, 2500);
+    /* Check 2b — not already claimed (local fingerprint) */
+    if (_dpCheckRewardDuplicate(cid, stampsNow)) {
+      auditRedemptionStep(cid, 'Reward Available', 'FAIL',
+        'Local duplicate guard fired — reward cycle already claimed on this device.');
+      _abort('⚠️ Already Claimed', '🚫 Step 2 Failed — Reward Already Claimed (local guard). This reward cycle was recorded just now.');
       return;
     }
 
-    customer.stamps         = stampsNow % 5;
-    customer.rewardsClaimed = (customer.rewardsClaimed || 0) + 1;
-    customer.rewardStatus   = _deriveRewardStatus(customer.stamps, customer.rewardsClaimed);
+    /* Check 2c — not already claimed (remote Firebase guard) */
+    if (await _dpCheckRewardDuplicateRemote(cid, stampsNow)) {
+      auditRedemptionStep(cid, 'Reward Available', 'FAIL',
+        'Remote duplicate guard fired — reward cycle already claimed on another device.');
+      _abort('⚠️ Already Claimed', '🚫 Step 2 Failed — Reward Already Claimed (remote guard). Another device claimed this reward cycle.');
+      return;
+    }
+
+    /* Check 2d — account must be active */
+    const accountStatus = (customer.accountStatus || customer.status || 'active').toLowerCase();
+    if (accountStatus !== 'active') {
+      auditRedemptionStep(cid, 'Reward Available', 'FAIL',
+        'Account status is "' + accountStatus + '", not "active".');
+      _abort('❌ Account Not Active', '🚫 Step 2 Failed — Customer account is not active (status: ' + accountStatus + ').');
+      return;
+    }
+
+    /* Check 2e — reward cycle data must be numerically valid */
+    const cycleValid = (
+      Number.isInteger(stampsNow)  && stampsNow  >= 0 &&
+      Number.isInteger(claimedNow) && claimedNow >= 0
+    );
+    if (!cycleValid) {
+      auditRedemptionStep(cid, 'Reward Available', 'FAIL',
+        'Cycle data invalid: stamps=' + stampsNow + ', claimed=' + claimedNow);
+      _abort('❌ Invalid Reward Cycle', '🚫 Step 2 Failed — Reward cycle data is corrupted. Please contact a manager.');
+      return;
+    }
+
+    auditRedemptionStep(cid, 'Reward Available', 'OK',
+      'Unlocked. stamps=' + stampsNow + ', claimed=' + claimedNow);
+
+    /* ══════════════════════════════════════════════════════════════════
+       STEP 3 — Claim Reward (compute new state)
+       Compute the post-claim values. No write yet — we verify the
+       arithmetic before touching Firebase.
+       ══════════════════════════════════════════════════════════════════ */
+    btn.innerHTML = '<span aria-hidden="true">⏳</span> Processing…';
+
+    const newStamps         = stampsNow % 5;
+    const newRewardsClaimed = claimedNow + 1;
+    /* V2.09C: post-claim state is always CLAIMED, not re-derived from counters */
+    const newRewardState    = SP_REWARD_STATE.CLAIMED;
+    const newRewardStatus   = newRewardState.toLowerCase(); /* backward-compat */
+
+    /* Sanity-check the computed values before writing */
+    if (!Number.isInteger(newStamps) || newStamps < 0 ||
+        !Number.isInteger(newRewardsClaimed) || newRewardsClaimed < 1) {
+      auditRedemptionStep(cid, 'Claim Reward', 'FAIL',
+        'Computed values invalid: newStamps=' + newStamps + ', newClaimed=' + newRewardsClaimed);
+      _abort('❌ Calculation Error', '🚫 Step 3 Failed — Reward calculation produced an invalid result. Please contact a manager.');
+      return;
+    }
+
+    auditRedemptionStep(cid, 'Claim Reward', 'OK',
+      'Reward #' + newRewardsClaimed + ' computed. Stamps reset: ' + stampsNow + ' → ' + newStamps);
+
+    /* Apply computed values to the customer object */
+    customer.stamps         = newStamps;
+    customer.rewardsClaimed = newRewardsClaimed;
+    customer.rewardState    = newRewardState;   /* V2.09C: formal CLAIMED state */
+    customer.rewardStatus   = newRewardStatus;  /* backward-compat lowercase */
     customer.updatedAt      = new Date().toISOString();
 
-    await Promise.all([
-      SG_BACKEND.set('customers:' + _clActiveCustomerId, customer),
-      _spSyncPassport(customer),
-      _spLogActivity(_clActiveCustomerId, 'rewardClaimed',
-        'Free Shumai Reward Claimed! ✅',
-        `Reward #${customer.rewardsClaimed} claimed. Enjoy your Shumai!`)
-    ]);
+    /* ══════════════════════════════════════════════════════════════════
+       STEP 4 — Reward Redeemed: write customer record
+       STEP 5 — Customer Record Updated: verify the write succeeded
+       ══════════════════════════════════════════════════════════════════ */
+    let customerWriteOk = false;
+    try {
+      customerWriteOk = await SG_BACKEND.set('customers:' + cid, customer);
+    } catch (e) {
+      customerWriteOk = false;
+    }
 
-    /* V2.07C/D — Record claim fingerprint AFTER successful write (local + remote) */
-    _dpRecordRewardClaim(_clActiveCustomerId, stampsNow);
-    await _dpRecordRewardClaimRemote(_clActiveCustomerId, stampsNow);
+    if (!customerWriteOk) {
+      auditRedemptionStep(cid, 'Customer Record Updated', 'FAIL',
+        'Firebase write to customers:' + cid + ' returned failure.');
+      _abort('❌ Save Failed', '🚫 Steps 4–5 Failed — Could not save the updated customer record. The reward was NOT deducted. Please try again.');
+      return;
+    }
 
+    auditRedemptionStep(cid, 'Reward Redeemed', 'OK',
+      'Customer record written. Reward #' + newRewardsClaimed + ' marked redeemed.');
+    auditRedemptionStep(cid, 'Customer Record Updated', 'OK',
+      'stamps=' + newStamps + ', rewardsClaimed=' + newRewardsClaimed + ', status=' + newRewardStatus);
+
+    /* Passport sync — runs after the customer write succeeds.
+       Non-blocking: a passport sync failure does not roll back the claim. */
+    const passportOk = await _spSyncPassport(customer);
+    if (!passportOk) {
+      /* Log the failure but do not abort — the customer record is already written */
+      auditRedemptionStep(cid, 'Customer Record Updated', 'FAIL',
+        'Passport sync failed for ' + cid + ' — customer record is correct; passport may lag.');
+      console.warn('[V2.09B] Passport sync failed for', cid, '— customer record is authoritative.');
+    } else {
+      auditRedemptionStep(cid, 'Customer Record Updated', 'OK', 'Passport synced successfully.');
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
+       STEP 6 — Activity Logged
+       Write an activity entry visible in the customer app.
+       Non-fatal: a missing activity entry is a degraded experience,
+       not a data integrity failure — the claim is already committed.
+       ══════════════════════════════════════════════════════════════════ */
+    const activityOk = await _spLogActivity(
+      cid,
+      'rewardClaimed',
+      'Free Shumai Reward Claimed! ✅',
+      `Reward #${newRewardsClaimed} claimed. Enjoy your Shumai!`
+    );
+
+    if (!activityOk) {
+      auditRedemptionStep(cid, 'Activity Logged', 'FAIL',
+        'Activity entry write failed for ' + cid + ' — claim is committed, history entry missing.');
+      console.warn('[V2.09B] Activity log write failed for', cid);
+    } else {
+      auditRedemptionStep(cid, 'Activity Logged', 'OK',
+        'Activity entry "rewardClaimed" written for ' + cid);
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
+       STEP 7 — Audit Logged
+       Record the canonical rewardClaim audit event and the duplicate-
+       protection fingerprints.
+       ══════════════════════════════════════════════════════════════════ */
+    auditRewardClaim(cid, newRewardsClaimed); /* canonical rewardClaim audit entry */
+    auditRedemptionStep(cid, 'Audit Logged', 'OK',
+      'rewardClaim audit entry written for reward #' + newRewardsClaimed);
+
+    /* Duplicate-protection fingerprints recorded AFTER successful write */
+    _dpRecordRewardClaim(cid, stampsNow);
+    await _dpRecordRewardClaimRemote(cid, stampsNow);
+
+    /* V2.09D-A — Claim record storage: persisted after all existing
+       redemption steps complete. Non-blocking — failure does not
+       affect the committed redemption. */
+    _spWriteClaimRecord(cid, customer.fullName || null);
+
+    /* ══════════════════════════════════════════════════════════════════
+       COMPLETE — Update local cache and refresh UI
+       ══════════════════════════════════════════════════════════════════ */
     const cache = clLoadCustomersCache();
-    const idx   = cache.findIndex(c => c.customerId === _clActiveCustomerId);
+    const idx   = cache.findIndex(c => c.customerId === cid);
     if (idx >= 0) cache[idx] = customer; else cache.push(customer);
     _clCacheSet(CL_CACHE_CUSTOMERS, cache);
 
     _updateStampUI(customer);
-    auditRewardClaim(_clActiveCustomerId, customer.rewardsClaimed); /* V2.07D */
     btn.innerHTML = '✅ Reward Claimed!';
-    setTimeout(() => { btn.disabled = false; btn.innerHTML = '<span aria-hidden="true">🎁</span> Claim Free Reward'; }, 1800);
+    setTimeout(() => {
+      btn.disabled  = false;
+      btn.innerHTML = '<span aria-hidden="true">🎁</span> Claim Free Reward';
+    }, 1800);
 
   } catch (e) {
-    btn.innerHTML = '❌ Save Failed';
-    setTimeout(() => { btn.disabled = false; btn.innerHTML = '<span aria-hidden="true">🎁</span> Claim Free Reward'; }, 2000);
+    /* Unexpected error — surface it and log it */
+    const errMsg = e && e.message ? e.message : 'Unexpected error';
+    auditRedemptionStep(cid, 'Redemption Workflow', 'FAIL',
+      'Unhandled exception: ' + errMsg);
+    console.error('[V2.09B] Unhandled error in handleClaimReward:', e);
+    _abort('❌ Unexpected Error', '🚫 Redemption Failed — An unexpected error occurred (' + errMsg + '). Please try again or contact a manager.');
   }
 }
 
@@ -3829,6 +4479,24 @@ function auditRewardClaim(customerId, rewardNumber) {
   _auditWrite('rewardClaim', customerId, 'Reward #' + rewardNumber + ' claimed.');
 }
 
+/**
+ * auditRedemptionStep(customerId, step, status, detail)  — V2.09B
+ * Writes a per-step redemption workflow audit record.
+ * action: 'rewardRedemption'
+ * detail format: "[step] [status] — [detail]"
+ *   step:   human step name from the spec flow
+ *   status: 'OK' | 'FAIL'
+ *   detail: brief context string
+ * Silent — never throws or blocks the workflow.
+ */
+function auditRedemptionStep(customerId, step, status, detail) {
+  _auditWrite(
+    'rewardRedemption',
+    customerId,
+    '[' + status + '] ' + step + (detail ? ' — ' + detail : '')
+  );
+}
+
 function auditAccessDenied(feature, staffRole) {
   _auditWrite('accessDenied', null,
     'Access denied to "' + feature + '" for role "' + staffRole + '".');
@@ -3848,7 +4516,7 @@ const AL_FILTER_MAP = {
   all:    null,
   login:  ['login', 'logout'],
   stamp:  ['qrScan', 'manualLookup', 'awardStamp'],
-  reward: ['rewardClaim'],
+  reward: ['rewardClaim', 'rewardRedemption'],
   access: ['accessDenied']
 };
 
@@ -3859,8 +4527,9 @@ const AL_ACTION_META = {
   qrScan:        { label: 'QR Scan',             dot: 'qrScan',       icon: '📷' },
   manualLookup:  { label: 'Manual Lookup',       dot: 'manualLookup', icon: '🔍' },
   awardStamp:    { label: 'Award Stamp',         dot: 'awardStamp',   icon: '🏅' },
-  rewardClaim:   { label: 'Reward Claimed',      dot: 'rewardClaim',  icon: '🎁' },
-  accessDenied:  { label: 'Access Denied',       dot: 'accessDenied', icon: '🚫' }
+  rewardClaim:        { label: 'Reward Claimed',      dot: 'rewardClaim',       icon: '🎁' },
+  rewardRedemption:   { label: 'Redemption Step',     dot: 'rewardRedemption',  icon: '🔁' },
+  accessDenied:       { label: 'Access Denied',        dot: 'accessDenied',      icon: '🚫' }
 };
 
 /**
