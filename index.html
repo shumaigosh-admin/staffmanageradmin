@@ -4158,8 +4158,8 @@ function showCustomerLookup(customer) {
 
   /* ── Avatar / profile photo ── */
   const avatarEl = document.getElementById('clAvatar');
-  if (customer.profilePhoto) {
-    avatarEl.innerHTML = `<img src="${customer.profilePhoto}" alt="${escapeHtml(customer.fullName || 'Customer')}'s photo">`;
+  if (customer.selfiePhoto) {  /* V2.09C fix: standardised to selfiePhoto — customer app writes selfiePhoto, not profilePhoto */
+    avatarEl.innerHTML = `<img src="${customer.selfiePhoto}" alt="${escapeHtml(customer.fullName || 'Customer')}'s photo">`;
   } else {
     avatarEl.textContent = '🥟';
   }
@@ -4932,7 +4932,7 @@ async function handleClaimReward() {
        ══════════════════════════════════════════════════════════════════ */
     btn.innerHTML = '<span aria-hidden="true">⏳</span> Processing…';
 
-    const newStamps         = stampsNow % 5;
+    const newStamps         = stampsNow; /* V2.09C fix: do NOT reset with % 5 — stamps must stay cumulative so _deriveRewardStatus (Math.floor(stamps/5) > claimed) works correctly for repeat reward cycles */
     const newRewardsClaimed = claimedNow + 1;
     /* V2.09C: post-claim state is always CLAIMED, not re-derived from counters */
     const newRewardState    = SP_REWARD_STATE.CLAIMED;
