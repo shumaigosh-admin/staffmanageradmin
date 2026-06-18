@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -484,6 +485,40 @@ body {
   background: rgba(100,180,255,0.15); color: #7EC8FF;
   border: 1px solid rgba(100,180,255,0.28);
 }
+
+/* ============================================================
+   DASHBOARD — LOCATION STATUS / COUNTDOWN BADGE  (V2.10-L2)
+   ============================================================ */
+.sp-loc-status {
+  width: 100%; margin-top: 12px;
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,200,180,0.1);
+  border-radius: var(--sg-radius-md);
+  padding: 10px 14px;
+}
+.sp-loc-status__dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  background: #2ED47A;
+  animation: sp-loc-pulse 2s infinite;
+}
+.sp-loc-status__dot--warn { background: var(--sp-gold);  animation: sp-loc-pulse-warn 2s infinite; }
+.sp-loc-status__dot--off  { background: var(--sg-error); animation: none; }
+@keyframes sp-loc-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(46,212,122,0.45); }
+  70%  { box-shadow: 0 0 0 6px rgba(46,212,122,0); }
+  100% { box-shadow: 0 0 0 0 rgba(46,212,122,0); }
+}
+@keyframes sp-loc-pulse-warn {
+  0%   { box-shadow: 0 0 0 0 rgba(255,195,0,0.45); }
+  70%  { box-shadow: 0 0 0 6px rgba(255,195,0,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,195,0,0); }
+}
+.sp-loc-status__text {
+  font-size: 11.5px; font-weight: 700; color: var(--sp-text-soft);
+  line-height: 1.4;
+}
+.sp-loc-status__text strong { color: var(--sp-text-light); }
 
 /* ============================================================
    DASHBOARD — SECTION LABEL & ACTION GRID
@@ -1769,6 +1804,14 @@ body {
   margin-top: 14px;
   font-size: 0.77rem; color: var(--sp-text-soft);
 }
+.loc-gate__feedback {
+  margin-top: 12px; min-height: 16px;
+  font-size: 0.8rem; font-weight: 800;
+  color: var(--sp-text-soft);
+}
+.loc-gate__feedback--ok  { color: #2ED47A; }
+.loc-gate__feedback--err { color: var(--sg-error); }
+.loc-gate__btn:disabled { opacity: 0.6; cursor: default; }
 
 </style>
 </head>
@@ -1785,20 +1828,21 @@ body {
      ================================================================ -->
 <div id="spLocationGate" role="alertdialog" aria-modal="true" aria-labelledby="locGateTitle">
   <div class="loc-gate__card">
-    <span class="loc-gate__icon">📍</span>
+    <span class="loc-gate__icon" id="locGateIcon">📍</span>
     <h2 class="loc-gate__title" id="locGateTitle">Location Required</h2>
-    <p class="loc-gate__body">
+    <p class="loc-gate__body" id="locGateBody">
       <strong>Shumai-Gosh! Staff Portal requires your location</strong>
       to verify you are at your assigned post during your shift.<br><br>
       This app cannot be used without location access.
     </p>
-    <div class="loc-gate__steps">
+    <div class="loc-gate__steps" id="locGateSteps">
       <b>How to re-enable:</b><br>
       1. Tap the 🔒 lock icon in your browser address bar<br>
       2. Find <b>Location</b> → set to <b>Allow</b><br>
       3. Tap <b>Try Again</b> below
     </div>
-    <button class="loc-gate__btn" onclick="locGateRetry()">📍 Try Again</button>
+    <button class="loc-gate__btn" id="locGateBtn" onclick="locGateRetry()">📍 Try Again</button>
+    <div class="loc-gate__feedback" id="locGateFeedback"></div>
     <p class="loc-gate__warn">⚠️ Continued denial will be logged and reported to management.</p>
   </div>
 </div>
@@ -1946,6 +1990,13 @@ body {
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="sp-loc-status" id="spLocStatus" aria-label="Location tracking status" role="status">
+    <span class="sp-loc-status__dot" id="spLocStatusDot"></span>
+    <span class="sp-loc-status__text" id="spLocStatusText">
+      📍 Location tracking <strong id="spLocCountdown">starting…</strong>
+    </span>
   </div>
 
   <div class="sp-section-label">Quick Actions</div>
@@ -2527,6 +2578,7 @@ body {
         <button class="al-filter-btn"            type="button" data-filter="stamp"  onclick="alSetFilter('stamp')">Stamps</button>
         <button class="al-filter-btn"            type="button" data-filter="reward" onclick="alSetFilter('reward')">Rewards</button>
         <button class="al-filter-btn"            type="button" data-filter="access" onclick="alSetFilter('access')">Access</button>
+        <button class="al-filter-btn"            type="button" data-filter="location" onclick="alSetFilter('location')">Location</button>
       </div>
 
       <!-- Log panel -->
@@ -5360,11 +5412,12 @@ let _alAllRecords    = [];
 
 /** Filter group → matching action values */
 const AL_FILTER_MAP = {
-  all:    null,
-  login:  ['login', 'logout'],
-  stamp:  ['qrScan', 'manualLookup', 'awardStamp'],
-  reward: ['rewardClaim', 'rewardRedemption'],
-  access: ['accessDenied']
+  all:      null,
+  login:    ['login', 'logout'],
+  stamp:    ['qrScan', 'manualLookup', 'awardStamp'],
+  reward:   ['rewardClaim', 'rewardRedemption'],
+  access:   ['accessDenied'],
+  location: ['locationDenied']
 };
 
 /** Action → human label + dot CSS modifier */
@@ -5376,7 +5429,8 @@ const AL_ACTION_META = {
   awardStamp:    { label: 'Award Stamp',         dot: 'awardStamp',   icon: '🏅' },
   rewardClaim:        { label: 'Reward Claimed',      dot: 'rewardClaim',       icon: '🎁' },
   rewardRedemption:   { label: 'Redemption Step',     dot: 'rewardRedemption',  icon: '🔁' },
-  accessDenied:       { label: 'Access Denied',        dot: 'accessDenied',      icon: '🚫' }
+  accessDenied:       { label: 'Access Denied',        dot: 'accessDenied',      icon: '🚫' },
+  locationDenied:      { label: 'Location Denied',      dot: 'accessDenied',      icon: '📍' }
 };
 
 /**
@@ -5512,22 +5566,85 @@ function alRender() {
 }
 
 /* ================================================================
-   LOCATION TRACKER  (V2.09C-L1)
-   - Requests GPS on login; hard-gates the app if denied
-   - Writes to Firebase: staff_location/{staffId}
-   - Refreshes every 5 minutes while session is active
-   - Monitors permission revocation mid-session (auto-logout)
+   LOCATION TRACKER  (V2.10-L2)
+   - Requests GPS on login; hard-gates the app if denied/unavailable
+   - Writes latest fix to Firebase: staff_location/{staffId}
+   - Refreshes every 30 SECONDS while session is active (was 5 min)
+   - Auto-logs every ping (success or fail) to locationPings/{staffId}/
+     so the Dev Tools file can build a movement history
+   - Live countdown + status badge rendered on the staff dashboard
+   - Distinguishes WHY a fix failed (permission denied / GPS turned
+     off / timed out) and shows tailored guidance + tailored steps
+   - Monitors permission revocation mid-session (auto re-gates)
+   - "Try Again" gives visible feedback instead of silently no-op'ing
    - Clears Firebase node on logout
    ================================================================ */
 
-let _locInterval  = null;   /* setInterval handle for periodic refresh */
-let _locWatchId   = null;   /* watchPosition handle for revocation detection */
-let _locStaffId   = null;   /* staffId of currently tracked staff */
-let _locDenialLogged = false; /* track if denial was already audited */
+let _locInterval       = null;  /* setInterval handle for the 30s refresh */
+let _locWatchId        = null;  /* watchPosition handle for revocation detection */
+let _locStaffId        = null;  /* staffId of currently tracked staff */
+let _locRole           = null;  /* role of currently tracked staff */
+let _locDenialLogged   = false; /* avoid spamming auditLogs with repeat denials */
+let _locCountdownTimer = null;  /* setInterval handle for the 1s UI countdown tick */
+let _locSecondsLeft    = 0;     /* seconds remaining until next ping, for the UI */
+let _locRetryBusy      = false; /* guards the Try Again button against double-taps */
 
-const LOC_REFRESH_MS = 5 * 60 * 1000; /* 5-minute refresh interval */
+const LOC_REFRESH_MS = 30 * 1000; /* V2.10-L2: was 5 minutes — now 30 seconds */
 
-/* Write latest position to Firebase */
+/* Gate copy per failure reason — so the popup actually matches the real cause
+   instead of always saying "check your browser permission". */
+const LOC_GATE_VARIANTS = {
+  denied: {
+    icon:  '📍',
+    title: 'Location Required',
+    body:  '<strong>Shumai-Gosh! Staff Portal requires your location</strong> to verify you are at your assigned post during your shift.<br><br>This app cannot be used without location access.',
+    steps: '<b>How to re-enable:</b><br>1. Open your device/app <b>Settings</b><br>2. Find <b>Permissions</b> → <b>Location</b> → set to <b>Allow</b><br>3. Tap <b>Try Again</b> below'
+  },
+  unavailable: {
+    icon:  '📡',
+    title: 'Location Services Off',
+    body:  '<strong>Your device\u2019s Location/GPS service appears to be turned off.</strong><br><br>Location must be enabled to use the Staff Portal.',
+    steps: '<b>How to turn it on:</b><br>1. Open your device <b>Settings</b><br>2. Go to <b>Location</b><br>3. Switch <b>Location</b> to <b>On</b><br>4. Tap <b>Try Again</b> below'
+  },
+  timeout: {
+    icon:  '⏳',
+    title: 'Couldn\u2019t Get Your Location',
+    body:  '<strong>We couldn\u2019t get a GPS fix in time.</strong><br><br>This is usually a weak signal — try moving closer to a window or open area.',
+    steps: '<b>Tips:</b><br>1. Move to an open area / near a window<br>2. Make sure Location is <b>On</b><br>3. Tap <b>Try Again</b> below'
+  },
+  unsupported: {
+    icon:  '🚫',
+    title: 'Location Not Supported',
+    body:  '<strong>This device/browser doesn\u2019t support location services.</strong><br><br>Please contact your manager — the Staff Portal cannot run here.',
+    steps: ''
+  }
+};
+
+/* Apply the right gate copy for the given failure reason, then show it */
+function _locApplyGateVariant(kind) {
+  const v = LOC_GATE_VARIANTS[kind] || LOC_GATE_VARIANTS.denied;
+  const iconEl  = document.getElementById('locGateIcon');
+  const titleEl = document.getElementById('locGateTitle');
+  const bodyEl  = document.getElementById('locGateBody');
+  const stepsEl = document.getElementById('locGateSteps');
+  if (iconEl)  iconEl.textContent  = v.icon;
+  if (titleEl) titleEl.textContent = v.title;
+  if (bodyEl)  bodyEl.innerHTML    = v.body;
+  if (stepsEl) stepsEl.innerHTML   = v.steps;
+  showLocationGate();
+}
+
+/* Map a GeolocationPositionError to one of our gate variant keys.
+   code 1 PERMISSION_DENIED, 2 POSITION_UNAVAILABLE (GPS/location services
+   off, or no signal), 3 TIMEOUT. */
+function _locReasonFromError(err) {
+  if (!err) return 'denied';
+  if (err.code === err.POSITION_UNAVAILABLE) return 'unavailable';
+  if (err.code === err.TIMEOUT)               return 'timeout';
+  return 'denied';
+}
+
+/* Write latest position to Firebase (read by the Dev Tools live viewer) */
 function _locWriteToFirebase(staffId, role, pos) {
   const record = {
     staffId,
@@ -5547,57 +5664,148 @@ function _locClearFirebase(staffId) {
   _fbDb.ref('staff_location/' + staffId).remove().catch(() => {});
 }
 
+/* ── Automatic ping logging (V2.10-L2) ──
+   Every 30s ping — success or failure — gets a lightweight history
+   entry under locationPings/{staffId}/{pingId}. Kept separate from
+   the security-relevant auditLogs/ trail (which only logs denials)
+   so pinging every 30s never floods the admin Audit Log viewer.
+   The Dev Tools file can read this node to build a movement history
+   per staff member. */
+function _locLogPing(staffId, role, ok, extra) {
+  try {
+    const pingId = 'PING-' + Date.now() + '-' + Math.random().toString(36).slice(2,6).toUpperCase();
+    const record = Object.assign({
+      pingId,
+      staffId:   staffId || 'UNKNOWN',
+      role:      role || 'unknown',
+      ok:        !!ok,
+      timestamp: firebase.database.ServerValue.TIMESTAMP,
+      at:        new Date().toISOString()
+    }, extra || {});
+    _fbDb.ref('locationPings/' + (staffId || 'UNKNOWN') + '/' + pingId).set(record).catch(() => {});
+  } catch {}
+}
+
+/* ── Dashboard status badge + 30s countdown UI (V2.10-L2) ── */
+function _locSetStatusUI(state, text) {
+  const dot = document.getElementById('spLocStatusDot');
+  if (dot) {
+    dot.classList.remove('sp-loc-status__dot--warn', 'sp-loc-status__dot--off');
+    if (state === 'warn') dot.classList.add('sp-loc-status__dot--warn');
+    if (state === 'off')  dot.classList.add('sp-loc-status__dot--off');
+  }
+  const countdownEl = document.getElementById('spLocCountdown');
+  if (countdownEl && text) countdownEl.textContent = text;
+}
+
+function _locStartCountdownUI() {
+  _locSecondsLeft = Math.round(LOC_REFRESH_MS / 1000);
+  _locSetStatusUI('ok', 'next update in ' + _locSecondsLeft + 's');
+  if (_locCountdownTimer) clearInterval(_locCountdownTimer);
+  _locCountdownTimer = setInterval(() => {
+    _locSecondsLeft = Math.max(0, _locSecondsLeft - 1);
+    _locSetStatusUI(null, 'next update in ' + _locSecondsLeft + 's');
+  }, 1000);
+}
+
+function _locStopCountdownUI() {
+  if (_locCountdownTimer) { clearInterval(_locCountdownTimer); _locCountdownTimer = null; }
+}
+
 /* Show the hard gate overlay */
 function showLocationGate() {
-  document.getElementById('spLocationGate').classList.add('is-visible');
+  const el = document.getElementById('spLocationGate');
+  if (el) el.classList.add('is-visible');
+  _locSetStatusUI('off', 'blocked — location unavailable');
 }
 
 /* Hide the hard gate overlay */
 function hideLocationGate() {
-  document.getElementById('spLocationGate').classList.remove('is-visible');
+  const el = document.getElementById('spLocationGate');
+  if (el) el.classList.remove('is-visible');
+  const fb = document.getElementById('locGateFeedback');
+  if (fb) { fb.textContent = ''; fb.className = 'loc-gate__feedback'; }
 }
 
-/* "Try Again" button on the gate overlay */
+/* "Try Again" button on the gate overlay.
+   V2.10-L2: now shows a busy state + a real success/failure message
+   instead of silently re-requesting and appearing to do nothing. */
 function locGateRetry() {
+  if (_locRetryBusy) return;
+  if (!navigator.geolocation) { _locApplyGateVariant('unsupported'); return; }
+
+  const btn = document.getElementById('locGateBtn');
+  const fb  = document.getElementById('locGateFeedback');
+  _locRetryBusy = true;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Checking…'; }
+  if (fb)  { fb.textContent = 'Requesting location…'; fb.className = 'loc-gate__feedback'; }
+
   const staffId = getActiveStaffId();
   const role    = getActiveRole();
+
+  const finish = (ok, err) => {
+    _locRetryBusy = false;
+    if (btn) { btn.disabled = false; btn.textContent = '📍 Try Again'; }
+    if (ok) {
+      if (fb) { fb.textContent = '✅ Location restored!'; fb.className = 'loc-gate__feedback loc-gate__feedback--ok'; }
+      hideLocationGate();
+    } else {
+      const reason = _locReasonFromError(err);
+      if (fb) {
+        fb.textContent =
+          reason === 'unavailable' ? '❌ Still off — please turn on Location in Settings.' :
+          reason === 'timeout'     ? '❌ No signal — move to an open area and retry.' :
+                                      '❌ Still blocked — please check your Location permission.';
+        fb.className = 'loc-gate__feedback loc-gate__feedback--err';
+      }
+    }
+  };
+
   if (staffId) {
-    startLocationTracking(staffId, role);
+    /* Logged in — restart full tracking (interval + watch + countdown) */
+    startLocationTracking(staffId, role, finish);
   } else {
-    /* Not logged in yet — just attempt fresh geolocation request */
+    /* Not logged in yet — just attempt a fresh one-shot request */
     navigator.geolocation.getCurrentPosition(
-      () => hideLocationGate(),
-      () => showLocationGate(),
-      { enableHighAccuracy: true, timeout: 10000 }
+      (pos) => {
+        _locLogPing(staffId, role, true, { lat: pos.coords.latitude, lng: pos.coords.longitude });
+        finish(true);
+      },
+      (err) => {
+        _locLogPing(staffId, role, false, { errorCode: err.code, reason: _locReasonFromError(err) });
+        finish(false, err);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   }
 }
 
-/* Log a location denial to auditLogs so it's visible in devtools */
-function _locAuditDenial(staffId) {
+/* Log a location denial to auditLogs so it's visible in the Audit Log viewer.
+   Routed through the shared _auditWrite() helper for consistency (V2.10-L2),
+   and now records WHY (denied / GPS off / timeout). */
+function _locAuditDenial(staffId, reason) {
   if (_locDenialLogged) return;
   _locDenialLogged = true;
-  const auditId = 'AUDIT_' + Date.now() + '_' + Math.random().toString(36).slice(2,7).toUpperCase();
-  const record  = {
-    auditId,
-    timestamp:   firebase.database.ServerValue.TIMESTAMP,
-    staffId:     staffId || 'UNKNOWN',
-    staffRole:   getActiveRole() || 'UNKNOWN',
-    action:      'location_denied',
-    details:     'Staff denied or revoked location permission',
-    customerId:  null
-  };
-  _fbDb.ref('auditLogs/' + auditId).set(record).catch(() => {});
+  const reasonText = {
+    unavailable: 'Location/GPS service is turned off on the device.',
+    timeout:     'Location request timed out (weak/no signal).',
+    denied:      'Staff denied or revoked location permission.'
+  }[reason] || 'Staff denied or revoked location permission.';
+  _auditWrite('locationDenied', null, reasonText);
 }
 
-/* Start periodic location tracking after successful login */
-function startLocationTracking(staffId, role) {
+/* Start periodic location tracking after successful login.
+   onDone(ok, err) is optional — used by locGateRetry() to report
+   success/failure back to the gate UI without a second GPS request. */
+function startLocationTracking(staffId, role, onDone) {
   _locStaffId      = staffId;
+  _locRole         = role;
   _locDenialLogged = false;
 
   if (!navigator.geolocation) {
-    /* Browser doesn't support geolocation at all — show gate */
-    showLocationGate();
+    /* Browser/WebView doesn't expose geolocation at all — show gate */
+    _locApplyGateVariant('unsupported');
+    if (typeof onDone === 'function') onDone(false, { code: 0 });
     return;
   }
 
@@ -5606,38 +5814,58 @@ function startLocationTracking(staffId, role) {
     (pos) => {
       hideLocationGate();
       _locWriteToFirebase(staffId, role, pos);
+      _locLogPing(staffId, role, true, {
+        lat: pos.coords.latitude, lng: pos.coords.longitude,
+        accuracy: Math.round(pos.coords.accuracy)
+      });
+      _locStartCountdownUI();
+      if (typeof onDone === 'function') onDone(true);
 
       /* Clear any previous interval/watch */
       if (_locInterval) clearInterval(_locInterval);
       if (_locWatchId !== null) navigator.geolocation.clearWatch(_locWatchId);
 
-      /* Periodic refresh every 5 minutes */
+      /* Periodic refresh — every 30 seconds (V2.10-L2, was 5 minutes) */
       _locInterval = setInterval(() => {
         navigator.geolocation.getCurrentPosition(
-          (p) => _locWriteToFirebase(staffId, role, p),
-          ()  => { /* silent fail on refresh — watchPosition handles revocation */ }
+          (p) => {
+            _locWriteToFirebase(staffId, role, p);
+            _locLogPing(staffId, role, true, {
+              lat: p.coords.latitude, lng: p.coords.longitude,
+              accuracy: Math.round(p.coords.accuracy)
+            });
+            _locStartCountdownUI(); /* reset the visible 30s countdown */
+          },
+          (err) => {
+            /* Log the failed ping; watchPosition below handles the hard gate */
+            _locLogPing(staffId, role, false, { errorCode: err.code, reason: _locReasonFromError(err) });
+            _locStartCountdownUI(); /* keep counting down to the next attempt regardless */
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
       }, LOC_REFRESH_MS);
 
-      /* Continuous watch — detects mid-session revocation */
+      /* Continuous watch — detects mid-session revocation / GPS being turned off */
       _locWatchId = navigator.geolocation.watchPosition(
         (p) => _locWriteToFirebase(staffId, role, p),
         (err) => {
-          if (err.code === err.PERMISSION_DENIED) {
-            _locAuditDenial(staffId);
-            showLocationGate();
-          }
+          const reason = _locReasonFromError(err);
+          _locAuditDenial(staffId, reason);
+          _locLogPing(staffId, role, false, { errorCode: err.code, reason });
+          _locApplyGateVariant(reason);
         },
         { enableHighAccuracy: true, maximumAge: 60000 }
       );
 
-      /* Monitor permission changes via Permissions API (Chrome/Edge/Firefox) */
+      /* Monitor permission changes via Permissions API (Chrome/Edge/Firefox —
+         most Android WebViews do not implement this, which is fine: the 30s
+         interval + watchPosition above still catch revocation there). */
       if (navigator.permissions) {
         navigator.permissions.query({ name: 'geolocation' }).then((status) => {
           status.onchange = () => {
             if (status.state === 'denied') {
-              _locAuditDenial(staffId);
-              showLocationGate();
+              _locAuditDenial(staffId, 'denied');
+              _locApplyGateVariant('denied');
             } else if (status.state === 'granted') {
               hideLocationGate();
             }
@@ -5646,9 +5874,12 @@ function startLocationTracking(staffId, role) {
       }
     },
     (err) => {
-      /* Permission denied on first request — show hard gate */
-      _locAuditDenial(staffId);
-      showLocationGate();
+      /* Permission denied / GPS off / timeout on first request — tailored gate */
+      const reason = _locReasonFromError(err);
+      _locAuditDenial(staffId, reason);
+      _locLogPing(staffId, role, false, { errorCode: err.code, reason });
+      _locApplyGateVariant(reason);
+      if (typeof onDone === 'function') onDone(false, err);
     },
     { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
   );
@@ -5658,8 +5889,10 @@ function startLocationTracking(staffId, role) {
 function stopLocationTracking() {
   if (_locInterval)  { clearInterval(_locInterval);                         _locInterval  = null; }
   if (_locWatchId !== null) { navigator.geolocation.clearWatch(_locWatchId); _locWatchId = null; }
+  _locStopCountdownUI();
   _locClearFirebase(_locStaffId);
   _locStaffId = null;
+  _locRole    = null;
 }
 
 /* ================================================================
