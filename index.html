@@ -1709,6 +1709,67 @@ body {
 .al-role-pill--manager { background: rgba(255,195,0,0.1);   border-color: rgba(255,195,0,0.25);  color: #FFC300; }
 .al-role-pill--cashier { background: rgba(46,212,122,0.1);  border-color: rgba(46,212,122,0.25); color: #2ED47A; }
 
+/* ============================================================
+   LOCATION GATE OVERLAY  (V2.09C-L1)
+   ============================================================ */
+#spLocationGate {
+  position: fixed; inset: 0; z-index: 9999;
+  background: linear-gradient(160deg, var(--sp-bg-1) 0%, var(--sp-bg-2) 60%, #3A1808 100%);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+#spLocationGate.is-visible {
+  opacity: 1; pointer-events: all;
+}
+.loc-gate__card {
+  background: var(--sp-panel-bg);
+  border: 1px solid var(--sp-panel-border);
+  border-radius: var(--sg-radius-lg);
+  padding: 36px 28px 28px;
+  max-width: 360px; width: 100%;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+}
+.loc-gate__icon {
+  font-size: 52px; margin-bottom: 16px;
+  display: block; line-height: 1;
+}
+.loc-gate__title {
+  font-family: var(--sg-font-display);
+  font-size: 1.5rem; color: var(--sp-text-light);
+  margin-bottom: 10px;
+}
+.loc-gate__body {
+  font-size: 0.88rem; color: var(--sp-text-soft);
+  line-height: 1.6; margin-bottom: 24px;
+}
+.loc-gate__body strong { color: var(--sp-text-light); }
+.loc-gate__steps {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,200,180,0.1);
+  border-radius: var(--sg-radius-md);
+  padding: 14px 16px; margin-bottom: 22px;
+  text-align: left;
+  font-size: 0.82rem; color: var(--sp-text-soft);
+  line-height: 1.9;
+}
+.loc-gate__steps b { color: var(--sp-gold); }
+.loc-gate__btn {
+  width: 100%; padding: 14px;
+  background: var(--sp-accent); border: none;
+  border-radius: var(--sg-radius-pill);
+  font-family: var(--sg-font-display); font-size: 1rem;
+  color: #fff; cursor: pointer;
+  transition: opacity 0.2s;
+}
+.loc-gate__btn:hover { opacity: 0.88; }
+.loc-gate__warn {
+  margin-top: 14px;
+  font-size: 0.77rem; color: var(--sp-text-soft);
+}
+
 </style>
 </head>
 <body>
@@ -1716,6 +1777,31 @@ body {
 <div class="sp-bg-dots" aria-hidden="true"></div>
 <div class="sp-bg-glow"  aria-hidden="true"></div>
 <div class="sp-stripe-bar" aria-hidden="true"></div>
+
+<!-- ================================================================
+     LOCATION GATE OVERLAY  (V2.09C-L1)
+     Shown when staff denies or revokes location permission.
+     Blocks all app access until location is re-granted.
+     ================================================================ -->
+<div id="spLocationGate" role="alertdialog" aria-modal="true" aria-labelledby="locGateTitle">
+  <div class="loc-gate__card">
+    <span class="loc-gate__icon">📍</span>
+    <h2 class="loc-gate__title" id="locGateTitle">Location Required</h2>
+    <p class="loc-gate__body">
+      <strong>Shumai-Gosh! Staff Portal requires your location</strong>
+      to verify you are at your assigned post during your shift.<br><br>
+      This app cannot be used without location access.
+    </p>
+    <div class="loc-gate__steps">
+      <b>How to re-enable:</b><br>
+      1. Tap the 🔒 lock icon in your browser address bar<br>
+      2. Find <b>Location</b> → set to <b>Allow</b><br>
+      3. Tap <b>Try Again</b> below
+    </div>
+    <button class="loc-gate__btn" onclick="locGateRetry()">📍 Try Again</button>
+    <p class="loc-gate__warn">⚠️ Continued denial will be logged and reported to management.</p>
+  </div>
+</div>
 
 <!-- ================================================================
      VIEW 1 — LOGIN
@@ -3558,6 +3644,7 @@ async function handleStaffLogin() {
 
     auditLogin(staff.staffId, staff.role);
     loadDashboard(staff);
+    startLocationTracking(staff.staffId, staff.role); /* V2.09C-L1 */
     showStaffView('spViewDashboard');
 
   } catch (err) {
@@ -5425,9 +5512,161 @@ function alRender() {
 }
 
 /* ================================================================
+   LOCATION TRACKER  (V2.09C-L1)
+   - Requests GPS on login; hard-gates the app if denied
+   - Writes to Firebase: staff_location/{staffId}
+   - Refreshes every 5 minutes while session is active
+   - Monitors permission revocation mid-session (auto-logout)
+   - Clears Firebase node on logout
+   ================================================================ */
+
+let _locInterval  = null;   /* setInterval handle for periodic refresh */
+let _locWatchId   = null;   /* watchPosition handle for revocation detection */
+let _locStaffId   = null;   /* staffId of currently tracked staff */
+let _locDenialLogged = false; /* track if denial was already audited */
+
+const LOC_REFRESH_MS = 5 * 60 * 1000; /* 5-minute refresh interval */
+
+/* Write latest position to Firebase */
+function _locWriteToFirebase(staffId, role, pos) {
+  const record = {
+    staffId,
+    role:      role || 'unknown',
+    lat:       pos.coords.latitude,
+    lng:       pos.coords.longitude,
+    accuracy:  Math.round(pos.coords.accuracy),
+    timestamp: firebase.database.ServerValue.TIMESTAMP,
+    updatedAt: new Date().toISOString()
+  };
+  _fbDb.ref('staff_location/' + staffId).set(record).catch(() => {});
+}
+
+/* Remove this staff's location node from Firebase */
+function _locClearFirebase(staffId) {
+  if (!staffId) return;
+  _fbDb.ref('staff_location/' + staffId).remove().catch(() => {});
+}
+
+/* Show the hard gate overlay */
+function showLocationGate() {
+  document.getElementById('spLocationGate').classList.add('is-visible');
+}
+
+/* Hide the hard gate overlay */
+function hideLocationGate() {
+  document.getElementById('spLocationGate').classList.remove('is-visible');
+}
+
+/* "Try Again" button on the gate overlay */
+function locGateRetry() {
+  const staffId = getActiveStaffId();
+  const role    = getActiveRole();
+  if (staffId) {
+    startLocationTracking(staffId, role);
+  } else {
+    /* Not logged in yet — just attempt fresh geolocation request */
+    navigator.geolocation.getCurrentPosition(
+      () => hideLocationGate(),
+      () => showLocationGate(),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+}
+
+/* Log a location denial to auditLogs so it's visible in devtools */
+function _locAuditDenial(staffId) {
+  if (_locDenialLogged) return;
+  _locDenialLogged = true;
+  const auditId = 'AUDIT_' + Date.now() + '_' + Math.random().toString(36).slice(2,7).toUpperCase();
+  const record  = {
+    auditId,
+    timestamp:   firebase.database.ServerValue.TIMESTAMP,
+    staffId:     staffId || 'UNKNOWN',
+    staffRole:   getActiveRole() || 'UNKNOWN',
+    action:      'location_denied',
+    details:     'Staff denied or revoked location permission',
+    customerId:  null
+  };
+  _fbDb.ref('auditLogs/' + auditId).set(record).catch(() => {});
+}
+
+/* Start periodic location tracking after successful login */
+function startLocationTracking(staffId, role) {
+  _locStaffId      = staffId;
+  _locDenialLogged = false;
+
+  if (!navigator.geolocation) {
+    /* Browser doesn't support geolocation at all — show gate */
+    showLocationGate();
+    return;
+  }
+
+  /* One-shot position to confirm permission and get first fix */
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      hideLocationGate();
+      _locWriteToFirebase(staffId, role, pos);
+
+      /* Clear any previous interval/watch */
+      if (_locInterval) clearInterval(_locInterval);
+      if (_locWatchId !== null) navigator.geolocation.clearWatch(_locWatchId);
+
+      /* Periodic refresh every 5 minutes */
+      _locInterval = setInterval(() => {
+        navigator.geolocation.getCurrentPosition(
+          (p) => _locWriteToFirebase(staffId, role, p),
+          ()  => { /* silent fail on refresh — watchPosition handles revocation */ }
+        );
+      }, LOC_REFRESH_MS);
+
+      /* Continuous watch — detects mid-session revocation */
+      _locWatchId = navigator.geolocation.watchPosition(
+        (p) => _locWriteToFirebase(staffId, role, p),
+        (err) => {
+          if (err.code === err.PERMISSION_DENIED) {
+            _locAuditDenial(staffId);
+            showLocationGate();
+          }
+        },
+        { enableHighAccuracy: true, maximumAge: 60000 }
+      );
+
+      /* Monitor permission changes via Permissions API (Chrome/Edge/Firefox) */
+      if (navigator.permissions) {
+        navigator.permissions.query({ name: 'geolocation' }).then((status) => {
+          status.onchange = () => {
+            if (status.state === 'denied') {
+              _locAuditDenial(staffId);
+              showLocationGate();
+            } else if (status.state === 'granted') {
+              hideLocationGate();
+            }
+          };
+        }).catch(() => {});
+      }
+    },
+    (err) => {
+      /* Permission denied on first request — show hard gate */
+      _locAuditDenial(staffId);
+      showLocationGate();
+    },
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+  );
+}
+
+/* Stop tracking and clean up on logout */
+function stopLocationTracking() {
+  if (_locInterval)  { clearInterval(_locInterval);                         _locInterval  = null; }
+  if (_locWatchId !== null) { navigator.geolocation.clearWatch(_locWatchId); _locWatchId = null; }
+  _locClearFirebase(_locStaffId);
+  _locStaffId = null;
+}
+
+/* ================================================================
    SIGN OUT
    ================================================================ */
 function handleSignOut() {
+  stopLocationTracking();  /* V2.09C-L1 — clear location before session ends */
   auditLogout(); /* V2.07D — must fire before session keys are cleared */
   _fbAuth.signOut().catch(() => {});
   try {
@@ -5474,6 +5713,7 @@ function handleSignOut() {
       } catch {}
 
       loadDashboard(staff);
+      startLocationTracking(staff.staffId, staff.role); /* V2.09C-L1 */
       showStaffView('spViewDashboard');
     } catch {
       await _fbAuth.signOut();
