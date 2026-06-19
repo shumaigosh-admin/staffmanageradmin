@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shumai-Gosh! — Staff Portal V2.09C</title>
+<title>Shumai-Gosh! — Staff Portal V2.09E</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -575,6 +576,159 @@ body {
   background: rgba(255,200,180,0.05);
 }
 .sp-signout-btn:active { transform: scale(0.98); }
+
+/* ============================================================
+   POS — NEW SALE VIEW
+   ============================================================ */
+#posKeypadState, #posReceiptState { width: 100%; display: flex; flex-direction: column; align-items: center; }
+
+.pos-amount-display {
+  width: 100%; text-align: center; margin-top: 18px; padding: 18px 0 6px;
+  display: flex; align-items: baseline; justify-content: center; gap: 4px;
+}
+.pos-amount-display__peso {
+  font-family: var(--sg-font-display); font-size: 28px; color: var(--sp-text-soft);
+}
+.pos-amount-display__value {
+  font-family: var(--sg-font-display); font-size: 52px; color: #fff;
+  text-shadow: 3px 3px 0 rgba(0,0,0,0.35);
+  min-width: 1ch; line-height: 1;
+}
+
+.pos-keypad {
+  width: 100%; display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px; margin-top: 10px;
+}
+.pos-key {
+  height: 58px; border-radius: var(--sg-radius-md);
+  background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,200,180,0.12);
+  color: #fff; font-family: var(--sg-font-display); font-size: 22px;
+  cursor: pointer; transition: background 0.15s ease, transform 0.1s ease;
+}
+.pos-key:hover  { background: rgba(255,255,255,0.09); }
+.pos-key:active { transform: scale(0.96); }
+.pos-key--fn    { color: var(--sp-accent); font-size: 18px; }
+
+.pos-item-grid {
+  width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.pos-item-chip {
+  position: relative; height: 50px; border-radius: var(--sg-radius-md);
+  background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,200,180,0.12);
+  color: var(--sp-text-light); font-family: var(--sg-font-body); font-weight: 800; font-size: 13.5px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.pos-item-chip:hover  { background: rgba(255,255,255,0.09); border-color: rgba(255,200,180,0.26); }
+.pos-item-chip:active { transform: scale(0.97); }
+.pos-item-chip.is-tagged {
+  border-color: var(--sp-accent); background: rgba(224,85,128,0.14);
+}
+.pos-item-chip__qty {
+  position: absolute; top: -8px; right: -8px; min-width: 22px; height: 22px;
+  border-radius: var(--sg-radius-pill); background: var(--sp-gold); color: var(--sp-bg-1);
+  font-family: var(--sg-font-display); font-size: 12px;
+  display: none; align-items: center; justify-content: center; padding: 0 5px;
+}
+.pos-item-chip.is-tagged .pos-item-chip__qty { display: flex; }
+
+.pos-clear-items-btn {
+  width: 100%; margin-top: 8px; padding: 6px 0;
+  background: transparent; border: none;
+  font-family: var(--sg-font-body); font-size: 12px; font-weight: 800;
+  color: var(--sp-text-soft); text-decoration: underline;
+  cursor: pointer; transition: color 0.15s ease;
+}
+.pos-clear-items-btn:hover { color: rgba(255,200,180,0.85); }
+
+.pos-total-row {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  margin-top: 16px; padding: 14px 18px; border-radius: var(--sg-radius-md);
+  background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,200,180,0.12);
+}
+.pos-total-row__label {
+  font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--sp-text-soft);
+}
+.pos-total-row__value {
+  font-family: var(--sg-font-display); font-size: 22px; color: var(--sp-gold);
+}
+
+.pos-change-row {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  margin-top: 14px; padding: 14px 18px; border-radius: var(--sg-radius-md);
+  background: rgba(28,140,94,0.1); border: 1.5px solid rgba(28,140,94,0.3);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.pos-change-row__label {
+  font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--sg-success);
+}
+.pos-change-row__value {
+  font-family: var(--sg-font-display); font-size: 22px; color: var(--sg-success);
+}
+.pos-change-row--short {
+  background: var(--sg-error-bg); border-color: var(--sg-error-border);
+}
+.pos-change-row--short .pos-change-row__label,
+.pos-change-row--short .pos-change-row__value { color: var(--sg-error); }
+
+.pos-receipt-card__row {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  font-size: 14px; font-weight: 700; color: var(--sp-text-light);
+  padding: 8px 0; border-top: 1px solid rgba(255,200,180,0.1);
+}
+.pos-receipt-card__row--change {
+  font-weight: 900; color: var(--sp-gold); font-size: 16px;
+}
+
+.pos-loc-hint {
+  width: 100%; text-align: center; margin-top: 18px;
+  font-size: 11px; font-weight: 700; color: var(--sp-text-soft);
+}
+
+.pos-action-row {
+  width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  margin-top: 18px;
+}
+.pos-btn {
+  height: 54px; border-radius: var(--sg-radius-md);
+  font-family: var(--sg-font-body); font-size: 14.5px; font-weight: 800;
+  letter-spacing: 0.02em; cursor: pointer; transition: transform 0.1s ease, opacity 0.15s ease;
+}
+.pos-btn:active { transform: scale(0.97); }
+.pos-btn--cancel {
+  background: transparent; border: 1.5px solid rgba(255,200,180,0.14); color: rgba(255,200,180,0.7);
+}
+.pos-btn--cancel:hover { border-color: rgba(255,200,180,0.28); color: rgba(255,200,180,0.95); }
+.pos-btn--confirm {
+  background: linear-gradient(135deg, var(--sp-accent), var(--sg-pink-deep));
+  border: none; color: #fff;
+  box-shadow: 0 10px 28px rgba(224,85,128,0.4);
+}
+.pos-btn--confirm:disabled { opacity: 0.4; cursor: not-allowed; }
+.pos-btn--next { width: 100%; margin-top: 22px; }
+
+.pos-receipt-card {
+  width: 100%; margin-top: 24px; text-align: center;
+  background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,200,180,0.14);
+  border-radius: var(--sg-radius-lg); padding: 32px 22px 26px;
+  animation: pop-in 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.pos-receipt-card__check { font-size: 40px; margin-bottom: 8px; }
+.pos-receipt-card__title {
+  font-family: var(--sg-font-display); font-size: 20px; color: #fff; margin-bottom: 14px;
+}
+.pos-receipt-card__amount {
+  font-family: var(--sg-font-display); font-size: 40px; color: var(--sp-gold); margin-bottom: 12px;
+}
+.pos-receipt-card__items {
+  font-size: 13px; font-weight: 700; color: var(--sp-text-light);
+  line-height: 1.7; margin-bottom: 12px;
+}
+.pos-receipt-card__meta {
+  font-size: 11px; font-weight: 700; color: var(--sp-text-soft); line-height: 1.6;
+}
 
 /* ============================================================
    COMING SOON TOAST
@@ -2019,6 +2173,15 @@ body {
       <div class="sp-action-card__desc">Process a free siomai reward</div>
     </button>
 
+    <button class="sp-action-card" type="button"
+      id="spCardPOS" data-feature="new_sale"
+      onclick="handleFeatureClick(this, 'New Sale')"
+      aria-label="Record a new sale">
+      <div class="sp-action-card__icon" aria-hidden="true">🧾</div>
+      <div class="sp-action-card__label">New Sale</div>
+      <div class="sp-action-card__desc">Tap to log a sale</div>
+    </button>
+
     <button class="sp-action-card sp-action-card--locked" type="button"
       id="spCardReports" data-feature="reports"
       onclick="handleFeatureClick(this, 'Reports')"
@@ -2050,6 +2213,125 @@ body {
     <strong>Shumai-Gosh!</strong> Staff Portal · Session secured<br>
     Unauthorised access attempts are logged.
   </p>
+
+</div>
+
+<!-- ================================================================
+     VIEW — POINT OF SALE (New Sale)
+     Simple tap-tap sale logger: keypad amount + optional item tags.
+     Logs to sales/ in Firebase with the staff's last known GPS fix
+     (read from staff_location/{staffId}, written by the existing
+     location tracker) so sales can later be mapped by place & time.
+     ================================================================ -->
+<div class="sp-view" id="spViewPOS" role="main" aria-label="New Sale">
+
+  <header class="sp-topbar" role="banner">
+    <div class="sp-topbar__logo-text">
+      <span class="sp-topbar__line1">New Sale</span>
+      <span class="sp-topbar__line2">Tap to log</span>
+    </div>
+    <span class="sp-topbar__badge">POS</span>
+  </header>
+
+  <!-- ── Keypad state ── -->
+  <div id="posKeypadState">
+
+    <div class="sp-section-label">Items</div>
+    <div class="pos-item-grid" id="posItemGrid" role="list">
+      <button class="pos-item-chip" type="button" data-item="chicken" onclick="posItemTap('chicken')">
+        <span class="pos-item-chip__label">Chicken<br><small>₱33</small></span>
+        <span class="pos-item-chip__qty" id="posQty-chicken">0</span>
+      </button>
+      <button class="pos-item-chip" type="button" data-item="pork" onclick="posItemTap('pork')">
+        <span class="pos-item-chip__label">Pork<br><small>₱33</small></span>
+        <span class="pos-item-chip__qty" id="posQty-pork">0</span>
+      </button>
+      <button class="pos-item-chip" type="button" data-item="beef" onclick="posItemTap('beef')">
+        <span class="pos-item-chip__label">Beef<br><small>₱33</small></span>
+        <span class="pos-item-chip__qty" id="posQty-beef">0</span>
+      </button>
+      <button class="pos-item-chip" type="button" data-item="japanese" onclick="posItemTap('japanese')">
+        <span class="pos-item-chip__label">Japanese<br><small>₱38</small></span>
+        <span class="pos-item-chip__qty" id="posQty-japanese">0</span>
+      </button>
+      <button class="pos-item-chip" type="button" data-item="rice" onclick="posItemTap('rice')">
+        <span class="pos-item-chip__label">Rice<br><small>₱10</small></span>
+        <span class="pos-item-chip__qty" id="posQty-rice">0</span>
+      </button>
+      <button class="pos-item-chip" type="button" data-item="drink" onclick="posItemTap('drink')">
+        <span class="pos-item-chip__label">Drink<br><small>₱20</small></span>
+        <span class="pos-item-chip__qty" id="posQty-drink">0</span>
+      </button>
+    </div>
+    <button class="pos-clear-items-btn" type="button" onclick="posClearItems()">Clear items</button>
+
+    <div class="pos-total-row">
+      <span class="pos-total-row__label">Total</span>
+      <span class="pos-total-row__value" id="posTotalValue">₱0</span>
+    </div>
+
+    <div class="sp-section-label">Cash Given</div>
+    <div class="pos-amount-display" aria-label="Cash given by customer">
+      <span class="pos-amount-display__peso">₱</span>
+      <span class="pos-amount-display__value" id="posAmountValue">0</span>
+    </div>
+
+    <div class="pos-keypad" role="group" aria-label="Number pad">
+      <button class="pos-key" type="button" onclick="posKeyPress('1')">1</button>
+      <button class="pos-key" type="button" onclick="posKeyPress('2')">2</button>
+      <button class="pos-key" type="button" onclick="posKeyPress('3')">3</button>
+      <button class="pos-key" type="button" onclick="posKeyPress('4')">4</button>
+      <button class="pos-key" type="button" onclick="posKeyPress('5')">5</button>
+      <button class="pos-key" type="button" onclick="posKeyPress('6')">6</button>
+      <button class="pos-key" type="button" onclick="posKeyPress('7')">7</button>
+      <button class="pos-key" type="button" onclick="posKeyPress('8')">8</button>
+      <button class="pos-key" type="button" onclick="posKeyPress('9')">9</button>
+      <button class="pos-key pos-key--fn" type="button" onclick="posKeyClear()">C</button>
+      <button class="pos-key" type="button" onclick="posKeyPress('0')">0</button>
+      <button class="pos-key pos-key--fn" type="button" onclick="posKeyBackspace()">⌫</button>
+    </div>
+
+    <div class="pos-change-row" id="posChangeRow">
+      <span class="pos-change-row__label" id="posChangeLabel">Change</span>
+      <span class="pos-change-row__value" id="posChangeValue">₱0</span>
+    </div>
+
+    <p class="pos-loc-hint" id="posLocHint">📍 Sale will be tagged with current location</p>
+
+    <div class="pos-action-row">
+      <button class="pos-btn pos-btn--cancel" type="button" onclick="posCancel()">Cancel</button>
+      <button class="pos-btn pos-btn--confirm" type="button" id="posConfirmBtn" onclick="posConfirm()">Confirm</button>
+    </div>
+
+  </div>
+
+  <!-- ── Receipt state (shown after Confirm) ── -->
+  <div id="posReceiptState" style="display:none;">
+
+    <div class="pos-receipt-card">
+      <div class="pos-receipt-card__check" aria-hidden="true">✅</div>
+      <div class="pos-receipt-card__title">Sale Logged</div>
+
+      <div class="pos-receipt-card__items" id="posReceiptItems"></div>
+
+      <div class="pos-receipt-card__row">
+        <span>Total</span><span id="posReceiptTotal">₱0</span>
+      </div>
+      <div class="pos-receipt-card__row">
+        <span>Cash Given</span><span id="posReceiptCash">₱0</span>
+      </div>
+      <div class="pos-receipt-card__row pos-receipt-card__row--change">
+        <span>Change</span><span id="posReceiptChange">₱0</span>
+      </div>
+
+      <div class="pos-receipt-card__meta" id="posReceiptMeta"></div>
+    </div>
+
+    <button class="pos-btn pos-btn--confirm pos-btn--next" type="button" onclick="posNextSale()">
+      Next Sale
+    </button>
+
+  </div>
 
 </div>
 
@@ -2945,9 +3227,9 @@ const STAFF_ROLES = {
    Permissions are checked at runtime; restrictions are not cosmetic.
    ================================================================ */
 const ROLE_PERMISSIONS = {
-  cashier: ['award_stamp', 'redeem_reward', 'scanner'],
-  manager: ['award_stamp', 'redeem_reward', 'scanner', 'reports'],
-  admin:   ['award_stamp', 'redeem_reward', 'scanner', 'reports', 'administration']
+  cashier: ['award_stamp', 'redeem_reward', 'scanner', 'new_sale'],
+  manager: ['award_stamp', 'redeem_reward', 'scanner', 'reports', 'new_sale'],
+  admin:   ['award_stamp', 'redeem_reward', 'scanner', 'reports', 'administration', 'new_sale']
 };
 
 /* Feature display metadata */
@@ -2956,7 +3238,8 @@ const FEATURE_META = {
   redeem_reward:  { label: 'Redeem Reward',  minRole: 'cashier' },
   scanner:        { label: 'QR Scanner',     minRole: 'cashier' },
   reports:        { label: 'Reports',        minRole: 'manager' },
-  administration: { label: 'Administration', minRole: 'admin'   }
+  administration: { label: 'Administration', minRole: 'admin'   },
+  new_sale:       { label: 'New Sale',       minRole: 'cashier' }
 };
 
 /* ================================================================
@@ -3056,6 +3339,11 @@ function handleFeatureClick(cardEl, featureLabel) {
   /* Feature routing */
   if (feature === 'award_stamp' || feature === 'redeem_reward') {
     openScanner();
+    return;
+  }
+
+  if (feature === 'new_sale') {
+    openPOS();
     return;
   }
 
@@ -5892,6 +6180,254 @@ function stopLocationTracking() {
   _locClearFirebase(_locStaffId);
   _locStaffId = null;
   _locRole    = null;
+}
+
+/* ================================================================
+   POINT OF SALE — NEW SALE  (V2.09E)
+   Tap-to-tag items at fixed prices (auto-totals), vendor types cash
+   received, live Change Due / Short shown. Logged to sales/ with
+   the staff's last known GPS fix (read from staff_location/{id},
+   written continuously by the existing location tracker). This is
+   intentionally separate from CartShift inventory for now — it's
+   an activity/location log, not a stock-deduction system.
+   ================================================================ */
+let _posAmount = '0'; /* cash handed over by the customer */
+const _posItemLabels = {
+  chicken:  'Chicken Siomai',
+  pork:     'Pork Siomai',
+  japanese: 'Japanese Siomai',
+  beef:     'Beef Siomai',
+  rice:     'Rice',
+  drink:    'Drink'
+};
+const _posItemPrices = {
+  chicken:  33,
+  pork:     33,
+  beef:     33,
+  japanese: 38,
+  rice:     10,
+  drink:    20
+};
+let _posItems = {}; /* { chicken: 2, drink: 1 } */
+
+/** Total cost of all tagged items, computed from _posItemPrices. */
+function posGetTotal() {
+  let total = 0;
+  for (const key in _posItems) {
+    total += (_posItems[key] || 0) * (_posItemPrices[key] || 0);
+  }
+  return total;
+}
+
+/** Recomputes the total display and refreshes the change/short row. */
+function posCalcTotal() {
+  const total = posGetTotal();
+  const el = document.getElementById('posTotalValue');
+  if (el) el.textContent = '₱' + total.toLocaleString('en-PH');
+  posUpdateChange();
+  return total;
+}
+
+/** Live change-due (or short-by) display as cash is typed on the keypad. */
+function posUpdateChange() {
+  const total  = posGetTotal();
+  const cash   = Number(_posAmount) || 0;
+  const rowEl  = document.getElementById('posChangeRow');
+  const lblEl  = document.getElementById('posChangeLabel');
+  const valEl  = document.getElementById('posChangeValue');
+  if (!lblEl || !valEl) return;
+
+  if (total <= 0 || cash <= 0) {
+    lblEl.textContent = 'Change';
+    valEl.textContent = '₱0';
+    if (rowEl) rowEl.classList.remove('pos-change-row--short');
+    return;
+  }
+
+  if (cash < total) {
+    lblEl.textContent = 'Short by';
+    valEl.textContent = '₱' + (total - cash).toLocaleString('en-PH');
+    if (rowEl) rowEl.classList.add('pos-change-row--short');
+  } else {
+    lblEl.textContent = 'Change';
+    valEl.textContent = '₱' + (cash - total).toLocaleString('en-PH');
+    if (rowEl) rowEl.classList.remove('pos-change-row--short');
+  }
+}
+
+function openPOS() {
+  if (!requireStaffAuth()) return;
+  posResetForm();
+  showStaffView('spViewPOS');
+}
+
+function posRenderAmount() {
+  const el = document.getElementById('posAmountValue');
+  if (el) el.textContent = Number(_posAmount).toLocaleString('en-PH');
+}
+
+function posKeyPress(digit) {
+  if (_posAmount === '0') { _posAmount = digit; }
+  else if (_posAmount.length < 7) { _posAmount += digit; }
+  posRenderAmount();
+  posUpdateChange();
+}
+
+function posKeyBackspace() {
+  _posAmount = _posAmount.length > 1 ? _posAmount.slice(0, -1) : '0';
+  posRenderAmount();
+  posUpdateChange();
+}
+
+function posKeyClear() {
+  _posAmount = '0';
+  posRenderAmount();
+  posUpdateChange();
+}
+
+function posItemTap(key) {
+  _posItems[key] = (_posItems[key] || 0) + 1;
+  const qtyEl  = document.getElementById('posQty-' + key);
+  const chipEl = qtyEl ? qtyEl.closest('.pos-item-chip') : null;
+  if (qtyEl)  qtyEl.textContent = _posItems[key];
+  if (chipEl) chipEl.classList.add('is-tagged');
+  posCalcTotal();
+}
+
+/** Clears all tagged items (and their qty badges) without touching the
+ *  cash-given keypad value, since the vendor may have already started
+ *  typing what the customer handed over. */
+function posClearItems() {
+  _posItems = {};
+  document.querySelectorAll('.pos-item-chip').forEach(chip => {
+    chip.classList.remove('is-tagged');
+    const key = chip.dataset.item;
+    const qtyEl = document.getElementById('posQty-' + key);
+    if (qtyEl) qtyEl.textContent = '0';
+  });
+  posCalcTotal();
+}
+
+function posResetForm() {
+  _posAmount = '0';
+  _posItems  = {};
+  posRenderAmount();
+  document.querySelectorAll('.pos-item-chip').forEach(chip => {
+    chip.classList.remove('is-tagged');
+    const key = chip.dataset.item;
+    const qtyEl = document.getElementById('posQty-' + key);
+    if (qtyEl) qtyEl.textContent = '0';
+  });
+  posCalcTotal(); /* resets total display + change row to ₱0 */
+  document.getElementById('posKeypadState').style.display  = 'flex';
+  document.getElementById('posReceiptState').style.display = 'none';
+}
+
+function posCancel() {
+  showStaffView('spViewDashboard');
+}
+
+/** Reads the staff's last known GPS fix from staff_location/{id}
+ *  (kept fresh by the existing location tracker) so each sale can
+ *  be tagged with where it happened, without requesting a fresh
+ *  GPS fix on every single sale. */
+async function _posGetLastLocation(staffId) {
+  try {
+    const snap = await _fbDb.ref('staff_location/' + staffId).get();
+    const val = snap.val();
+    if (val && typeof val.lat === 'number') {
+      return { lat: val.lat, lng: val.lng, accuracy: val.accuracy || null };
+    }
+  } catch {}
+  return { lat: null, lng: null, accuracy: null };
+}
+
+async function posConfirm() {
+  const staffId = getActiveStaffId();
+  const role    = getActiveRole();
+  if (!staffId) { showStaffView('spViewLogin'); return; }
+
+  const hint  = document.getElementById('posLocHint');
+  const total = posGetTotal();
+  const cash  = Number(_posAmount) || 0;
+
+  if (!total || total <= 0) {
+    if (hint) {
+      hint.textContent = '⚠️ Tag at least one item first.';
+      hint.style.color = 'var(--sg-error)';
+    }
+    return;
+  }
+  if (cash < total) {
+    if (hint) {
+      hint.textContent = '⚠️ Cash given is less than the total — check the amount.';
+      hint.style.color = 'var(--sg-error)';
+    }
+    return;
+  }
+  if (hint) {
+    hint.textContent = '📍 Sale will be tagged with current location';
+    hint.style.color = '';
+  }
+
+  const change = cash - total;
+
+  const btn = document.getElementById('posConfirmBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Logging…'; }
+
+  const loc = await _posGetLastLocation(staffId);
+
+  const saleRef = _fbDb.ref('sales').push();
+  const record = {
+    saleId:    saleRef.key,
+    total,
+    cashGiven: cash,
+    change,
+    items:     _posItems,
+    staffId,
+    role:      role || 'unknown',
+    lat:       loc.lat,
+    lng:       loc.lng,
+    accuracy:  loc.accuracy,
+    timestamp: firebase.database.ServerValue.TIMESTAMP,
+    createdAt: new Date().toISOString()
+  };
+
+  try {
+    await saleRef.set(record);
+  } catch {
+    /* Write failed (offline, etc.) — still show receipt locally so
+       the vendor isn't blocked; sale just won't be in Firebase yet. */
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Confirm'; }
+  posShowReceipt(total, cash, change, _posItems);
+}
+
+function posShowReceipt(total, cashGiven, change, items) {
+  document.getElementById('posReceiptTotal').textContent  = '₱' + Number(total).toLocaleString('en-PH');
+  document.getElementById('posReceiptCash').textContent   = '₱' + Number(cashGiven).toLocaleString('en-PH');
+  document.getElementById('posReceiptChange').textContent = '₱' + Number(change).toLocaleString('en-PH');
+
+  const itemKeys = Object.keys(items).filter(k => items[k] > 0);
+  const itemsEl = document.getElementById('posReceiptItems');
+  itemsEl.innerHTML = itemKeys.length
+    ? itemKeys.map(k => {
+        const lineTotal = items[k] * (_posItemPrices[k] || 0);
+        return `${items[k]}× ${_posItemLabels[k] || k} — ₱${lineTotal.toLocaleString('en-PH')}`;
+      }).join('<br>')
+    : '<span style="opacity:0.6;">No items tagged</span>';
+
+  const now = new Date();
+  document.getElementById('posReceiptMeta').textContent =
+    now.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }) + ' · ' + (getActiveStaffId() || '');
+
+  document.getElementById('posKeypadState').style.display  = 'none';
+  document.getElementById('posReceiptState').style.display = 'flex';
+}
+
+function posNextSale() {
+  posResetForm();
 }
 
 /* ================================================================
